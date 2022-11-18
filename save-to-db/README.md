@@ -1,8 +1,8 @@
-# extract-metadata-content
+# Extract Metadata Content
 
 This is an oversimplified example of the NATS messaging system.
 
-This reads subscribes to the extractedSheetData NATS subject and will dump into a noSQL database. 
+This service subscribes to the "extractedSheetData" NATS subject and will add data read from this channel into a noSQL database. 
 
 * Note this doesn't do anything except pick up and print out the data (YET!) 
 
