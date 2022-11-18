@@ -13,9 +13,8 @@ const nc = await connect({
 });
 
 function publish(payload) {
-    // Publishes payload of json valid spreadsheet data via NATS. Called in GraphQL resolver.
+    // Publishes payload of json valid spreadsheet data via NATS. 
     nc.publish("extractedSheetData", jc.encode(payload))
-  
   }
 
 // Subscribe and listen to the 'sheetData' service
@@ -27,22 +26,17 @@ console.log('🚀 Connected to NATS server...');
   // as well as the extracted spreadsheet data.
   for await (const message of sub) {
     var wholePayload  = jc.decode(message.data)
-    // if (wholePayload.state == 'DONE') {
     const metadata = wholePayload.workbook.Props
     const content = wholePayload.sheets
-    const contentString = JSON.stringify(wholePayload.sheets)
     
-    const contentPayload = {'content':content}
-    const metadataPayload = {'metadata':metadata}
-    const newPayload = [contentPayload, metadataPayload]
-  
     console.log(
       '\n \n ------------------------------------------------------------- \n ',
       metadata, 
       '\n \n ', 
-      contentString,
+      JSON.stringify(content),
     )
-    
+
+    const newPayload = [metadata, content]
     publish(newPayload)
     }
 })();

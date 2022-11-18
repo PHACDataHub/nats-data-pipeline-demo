@@ -28,14 +28,13 @@ console.log('🚀 Connected to NATS server...');
   for await (const message of sub) {
     var payload  = jc.decode(message.data)
     // if (wholePayload.state == 'DONE') {
-    const metadata = wholePayload.metadata
-    const content = wholePayload.content
-    const contentString = JSON.stringify(wholePayload.sheets)
+    const metadata = payload[0]
+    const content = payload[1]
     console.log(
       '\n \n ------------------------------------------------------------- \n ',
       metadata, 
       '\n \n ', 
-      contentString,
+      JSON.stringify(content),
     )
 
     }
@@ -43,4 +42,3 @@ console.log('🚀 Connected to NATS server...');
 
 // don't exit until the client closes
 await nc.closed();
-
