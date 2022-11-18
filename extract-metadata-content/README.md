@@ -1,4 +1,4 @@
-# extract-metadata-content
+# Extract Metadata Content
 
 This is an oversimplified example of the NATS messaging system.
 
