@@ -1,0 +1,20 @@
+{
+  "name": "save-to-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "lint": "eslint src",
+    "dbg": "node --experimental-vm-modules --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
+    "start": "node --experimental-vm-modules index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv-safe": "^8.2.0",
+    "nats": "^2.9.0"
+  }
+}

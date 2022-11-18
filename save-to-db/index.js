@@ -19,31 +19,25 @@ function publish(payload) {
   }
 
 // Subscribe and listen to the 'sheetData' service
-const sub = nc.subscribe("sheetData");
+const sub = nc.subscribe("extractedSheetData");
 console.log('🚀 Connected to NATS server...');
 
 (async () => {
   // listen for messages, then parse out just the metadata from the top portion of https://safeinputs.alpha.canada.ca/pagesix
   // as well as the extracted spreadsheet data.
   for await (const message of sub) {
-    var wholePayload  = jc.decode(message.data)
+    var payload  = jc.decode(message.data)
     // if (wholePayload.state == 'DONE') {
-    const metadata = wholePayload.workbook.Props
-    const content = wholePayload.sheets
+    const metadata = wholePayload.metadata
+    const content = wholePayload.content
     const contentString = JSON.stringify(wholePayload.sheets)
-    
-    const contentPayload = {'content':content}
-    const metadataPayload = {'metadata':metadata}
-    const newPayload = [contentPayload, metadataPayload]
-  
     console.log(
       '\n \n ------------------------------------------------------------- \n ',
       metadata, 
       '\n \n ', 
       contentString,
     )
-    
-    publish(newPayload)
+
     }
 })();
 

@@ -2,9 +2,9 @@
 
 This is an oversimplified example of the NATS messaging system.
 
-At this point, the data extracted from the xlsx has been passed though the [GraphQL API](../api/) and published via NATS message.  extract-metadata-content picks up this JSON data and and pulls out the spreadsheet data and relevant metadata then publishes this data to another NATS subject.
+This reads subscribes to the extractedSheetData NATS subject and will dump into a noSQL database. 
 
-* NOTE - this will need a refactor - just getting the ideas out.
+* Note this doesn't do anything except pick up and print out the data (YET!) 
 
 ## Installing dependencies
 
