@@ -1,0 +1,3 @@
+nats-py
+asyncio
+immudb-py
