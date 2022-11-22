@@ -26,19 +26,20 @@ console.log('🚀 Connected to NATS server...');
   // as well as the extracted spreadsheet data.
   for await (const message of sub) {
     var wholePayload  = jc.decode(message.data)
-    const metadata = wholePayload.workbook.Props
-    const content = wholePayload.sheets
-    
-    console.log(
-      '\n \n ------------------------------------------------------------- \n ',
-      metadata, 
-      '\n \n ', 
-      JSON.stringify(content),
-    )
+    if (wholePayload.state == 'DONE'){
+      const metadata = wholePayload.workbook.Props
+      const content = wholePayload.sheets
+      console.log(
+        '\n \n ------------------------------------------------------------- \n ',
+        metadata, 
+        '\n \n ', 
+        JSON.stringify(content),
+      )
 
-    const newPayload = [metadata, content]
-    publish(newPayload)
+      const newPayload = [metadata, content]
+      publish(newPayload)
     }
+  }
 })();
 
 // don't exit until the client closes
