@@ -41,10 +41,13 @@ console.log('🚀 Connected to NATS server...');
   for await (const message of sub) {
     var wholePayload  = jc.decode(message.data)
     if (wholePayload.state == 'DONE'){
+      const filename = wholePayload.filename
       const metadata = wholePayload.workbook.Props
       const content = wholePayload.sheets
       console.log(
         '\n \n ------------------------------------------------------------- \n ',
+        filename,
+        '\n \n',
         metadata, 
         '\n \n ', 
         JSON.stringify(content),
