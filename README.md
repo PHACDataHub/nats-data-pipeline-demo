@@ -6,7 +6,7 @@ This project explores the use of [NATS](https://nats.io/) to process and store d
 
 Each service subscribes and listens to a NATS subject (like a channel), performs a function, then publishes to a different NATS subject - that is subscribed to by a subsequent service. 
 
-The [safe-inputs](https://github.com/PHACDataHub/safe-inputs) project is used as a data source in this demo. To initiate the flow, 'upload' a spreadsheet here: https://safeinputs.alpha.canada.ca. (But the services will pick up anything published on the subject channels they are subscribed to.)
+The [safe-inputs](https://github.com/PHACDataHub/safe-inputs) project is used as a data source in this demo. To initiate the flow, 'upload' a spreadsheet here: https://safeinputs.alpha.canada.ca. (But the services will pick up anything published on the subject channels they are subscribed to.)  This isn't cloud ready so all modules of the pipeline should be running locally.
 
 Hoping to explore the [NATS services API](https://www.youtube.com/watch?v=vUWw3HVY35E) and the potential to use NATS key-value and object store to act as a database. ([This video](https://www.youtube.com/watch?v=EJJ2SG-cKyM) provides a good jetstream overview and touches on key-value and object stores towards the end.)
 
