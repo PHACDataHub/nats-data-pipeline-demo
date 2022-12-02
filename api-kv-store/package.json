@@ -1,0 +1,33 @@
+{
+  "name": "api-kv-store",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "@envelop/core": "^3.0.4",
+    "@escape.tech/graphql-armor": "^1.5.0",
+    "@escape.tech/graphql-armor-max-aliases": "^1.6.0",
+    "@pothos/core": "^3.23.0",
+    "dotenv": "^8.6.0",
+    "dotenv-safe": "^8.2.0",
+    "express": "^4.18.2",
+    "graphql": "^16.6.0",
+    "graphql-type-json": "^0.3.2",
+    "graphql-yoga": "^3.1.0",
+    "nats": "^2.9.0"
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "lint": "eslint src",
+    "dbg": "node --experimental-vm-modules --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
+    "start": "node --experimental-vm-modules index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.3.1",
+    "supertest": "^6.3.1"
+  }
+}
