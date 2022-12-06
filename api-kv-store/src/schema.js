@@ -63,8 +63,6 @@ query: new GraphQLObjectType({
                   console.log(`value for get ${msg.key}: ${JSON.stringify(jc.decode(msg.value))}`);
               } catch {
                   console.log("Something went wrong - could not find", filename)
-                  var metadata = null
-                  var content = null
               }
               return jc.decode(msg.value)
               },
@@ -82,14 +80,22 @@ query: new GraphQLObjectType({
           type: GraphQLJSON,
           args: {
               filename: { type: new GraphQLNonNull(GraphQLString) },
-              filedata: { type: new GraphQLNonNull(GraphQLJSON) },
+              metadata: { type: GraphQLString },
+              content: { type: GraphQLJSON },
               },
-          async resolve(_parent, {filename, filedata} , { publish }, _info) {
+          async resolve(_parent, {filename, metadata, content} , _context, _info) {
               // console.log(args)
               console.log(filename)
-              console.log(JSON.stringify(filedata))
-              const addKeyValue = await kv.put(filename, jc.encode(filedata));
-              return {filename, filedata};
+              console.log(metadata)
+              console.log(JSON.stringify(content))
+              var valueToAddToStore ={
+                "filename": filename, 
+                "metadata": metadata,
+                "content": content
+              }
+
+              const addKeyValue = await kv.put(filename, jc.encode(valueToAddToStore));
+              return valueToAddToStore;
               },
           },
       },

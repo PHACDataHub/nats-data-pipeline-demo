@@ -94,12 +94,10 @@ const done = (async () => {
   for await (const message of sub) {
     message.ack(); // acknowledge receipt
     var payload  = jc.decode(message.data);
+    
+    // replace whitespace in filename (throws error if used in KV key)
+    payload.filename = payload.filename.replace(/ /g,"_");
     console.log(payload)
-    // console.log("Stream squence # ",message.info.streamSequence); // message order number - if out of order (ie await not used) will cause error
-    // console.log(message.headers)
-    // console.log(jc.decode(message.data))
-   
-    // const addKeyValue = await kv.put(payload[0], message.data); // (key => file name, value => payload)
     const addKeyValue = await kv.put(payload.filename, message.data); // (key => file name, value => payload)
     console.log("\n------------------------------------------------")
     console.log("Added to stream \nsequence:",message.info.streamSequence, "\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
