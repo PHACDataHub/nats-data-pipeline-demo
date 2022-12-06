@@ -24,7 +24,7 @@ async def run(loop):
     nc = await nats.connect("demo.nats.io:4222")
     print('🚀 Connected to NATS server...')
 
-    subject = "extractedSheetData.>"
+    subject = "extractedSheetData2.>"
 
     sub = await nc.subscribe(subject) # TODO - change to durable consumer
     # sub = await nc.subscribe(subject, durable="to-immudb-consumer") # This one is durable across restarts (only pick up new messages)
@@ -42,8 +42,9 @@ async def run(loop):
                 await msg.ack()
 
                 #TODO change to this https://nats-io.github.io/nats.py/modules.html#connection-properties
-                print('--------------------------------------------')
-                print(f"Received a message on '{msg.subject}': \n \n{msg.data.decode()}")
+                print('\n--------------------------------------------')
+                # print(f"Received a message on '{msg.subject}': \n \n {msg.data.decode()}")
+                print(f"Received a message on '{msg.subject}': \n")
                 try:
                     filename = msg.subject[msg.subject.index('.')+1:] # Removes first section (anything before and including the first '.')
                     # TODO see if undefined isn't flagging an exception and make sure not overriding other values (maybe read to see if there)
@@ -51,7 +52,8 @@ async def run(loop):
                     filename = msg.subject
 
                 # insert in db
-                data_to_insert = json.dumps(msg.data.decode())
+                # data_to_insert = json.dumps(msg.data.decode())
+                data_to_insert = msg.data.decode()
                 # key = subject.encode('utf8')
                 key = filename.encode('utf8')
                 value = data_to_insert.encode('utf8')
@@ -62,7 +64,7 @@ async def run(loop):
                 # reads back the value
                 readback = client.get(key)
                 saved_value = readback.value.decode('utf8')
-                print('--------------------------------')
+                # print('--------------------------------')
                 print("Message saved to db: \nKey: ", key.decode('utf8'), "\nValue: ", saved_value)
 
 

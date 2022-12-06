@@ -53,8 +53,15 @@ console.log('🚀 Connected to NATS server...');
         JSON.stringify(content),
       )
 
-      const newPayload = [filename, metadata, content]
-      publish(newPayload, filename) // will publish on "extractedSheetData.${filename}" 
+      // const newPayload = [filename, metadata, content] // change to json below
+      var newPayload = {
+        "filename": filename, 
+        "metadata": metadata,
+        "content": content
+      }
+      console.log(JSON.stringify(newPayload))
+      // publish(newPayload, filename) // will publish on "extractedSheetData.${filename}" 
+      publish(newPayload)
     }
   }
 })();
