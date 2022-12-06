@@ -66,8 +66,21 @@ query: new GraphQLObjectType({
               }
               return jc.decode(msg.value)
               },
-          },
-    }),
+          }
+    //     getHistory: {
+    //       type: GraphQLJSON,
+    //       description: "Retrieve history for a particular filename.",
+    //       args: {
+    //         filename: {type: GraphQLString},
+    //       },
+    //       // resolve: (parent, { filename }) => "filename",
+    //       async resolve(parent, { filename }){
+    //         await history( // https://docs.nats.io/using-nats/developer/develop_jetstream/kv
+    //           opts: { key?: string; headers_only?: boolean } = {},
+    //         ): Promise<QueuedIterator<KvEntry>>
+    //       },
+    // }
+    
 }),
 
   mutation: new GraphQLObjectType({
@@ -100,4 +113,5 @@ query: new GraphQLObjectType({
           },
       },
   }),
+}),
 });

@@ -96,8 +96,12 @@ const done = (async () => {
     var payload  = jc.decode(message.data);
     
     // replace whitespace in filename (throws error if used in KV key)
-    payload.filename = payload.filename.replace(/ /g,"_");
-    console.log(payload)
+    // payload.filename = payload.filename.replace(/ /g,"_");  ("/[^A-Za-z0-9\.]/", "_")
+    payload.filename = payload.filename.replace(/ /g,"_")
+    payload.filename = payload.filename.replace(")","_")
+    payload.filename = payload.filename.replace("(","_")
+    // console.log("FIXED FILENAME: ", payload.filename)
+    // console.log(payload)
     const addKeyValue = await kv.put(payload.filename, message.data); // (key => file name, value => payload)
     console.log("\n------------------------------------------------")
     console.log("Added to stream \nsequence:",message.info.streamSequence, "\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))

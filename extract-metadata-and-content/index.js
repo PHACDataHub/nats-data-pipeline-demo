@@ -44,14 +44,15 @@ console.log('🚀 Connected to NATS server...');
       const filename = wholePayload.filename
       const metadata = wholePayload.workbook.Props
       const content = wholePayload.sheets
-      console.log(
-        '\n \n ------------------------------------------------------------- \n ',
-        filename,
-        '\n \n',
-        metadata, 
-        '\n \n ', 
-        JSON.stringify(content),
-      )
+      // console.log(
+      //   '\n \n ------------------------------------------------------------- \n ',
+      //   filename,
+      //   '\n \n',
+      //   metadata, 
+      //   '\n \n ', 
+      //   JSON.stringify(content),
+      // )
+      console.log('\n--------------------------------------\n',JSON.stringify(wholePayload))
 
       // const newPayload = [filename, metadata, content] // change to json below
       var newPayload = {
@@ -59,7 +60,7 @@ console.log('🚀 Connected to NATS server...');
         "metadata": metadata,
         "content": content
       }
-      console.log(JSON.stringify(newPayload))
+      // console.log(JSON.stringify(newPayload))
       // publish(newPayload, filename) // will publish on "extractedSheetData.${filename}" 
       publish(newPayload)
     }
