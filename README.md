@@ -1,4 +1,4 @@
-# NATS Data Pipeline Example
+# NATS Data Pipeline Demo
 
 This project explores the use of [NATS](https://nats.io/) to process and store data.  
 
