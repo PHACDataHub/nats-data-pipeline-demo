@@ -10,7 +10,7 @@ There are a wide range of options available when setting up message consumers wi
 
 ** Still need to further investigate limits - here we're using Synadia's demo server, and previously the free ngs account which has some limitations in terms mandatory jetsream retention policies and storage limits. 
 
-(Note - KV store requires the key to be void of whitespaces - so if the file name contains spaces, this module replaces them with '_' prior to being put into the KV store).
+(Note - KV store requires the key to be void of whitespaces (Rules are; must only contain A-Z, a-z, 0-9, `-`, `_`, `/`, `=` or `.` and cannot start with `.`), so if the file name contains spaces or brackets (will update with regex to include above rule shortly), this module replaces them with '_' prior to being put into the KV store).
 
 ## NATS Jetstream, KV and Object Store Resources
 #### DOCS: 
