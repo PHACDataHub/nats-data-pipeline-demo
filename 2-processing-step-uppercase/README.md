@@ -1,10 +1,8 @@
-# Extract Metadata Content
+# 2 Processing Step Uppercasing
 
 This is an oversimplified example of the NATS messaging system.
 
-At this point, the data extracted from the xlsx has been passed though the [GraphQL API](../api/) and published via NATS message.  extract-metadata-content picks up this JSON data and and pulls out the spreadsheet data and relevant metadata then publishes this data to another NATS subject.
-
-* NOTE - this will need a refactor - just getting the ideas out.
+This service will do some processing - in this case its some uppercasing.
 
 ## Installing dependencies
 
@@ -20,10 +18,11 @@ $ npm start &
 ```
 
 ## Running the tests
-
+<!-- 
 ```
 npm t
-```
+``` -->
+Tests to come shortly.
 
 ## Code audits
 

@@ -29,19 +29,19 @@ const js = nc.jetstream();
 
 // Create jetstream new stream
 const jsm = await nc.jetstreamManager();
-const cfg = {
-  name: "extractedSheetData2",
-  subjects: ["extractedSheetData2.>"],
-  max_bytes: 30000000,
-};
+// const cfg = {
+//   name: "safeInputsDataPipeline",
+//   subjects: ["safeInputsDataPipeline.>"],
+//   max_bytes: 30000000,
+// };
 // await jsm.streams.add(cfg)  // If needs to be created - use this
-await jsm.streams.update(cfg.name, cfg) //If already exisits - use this
-console.log(`Updated the ${cfg.name} stream ...`)
+// await jsm.streams.update(cfg.name, cfg) //If already exisits - use this
+// console.log(`Updated the ${cfg.name} stream ...`)
 
 // // Create durable consumer - This should only be done on set up...(if get message 'consumer already in use', comment this out)
 // const inbox = createInbox();
-//   await jsm.consumers.add("extractedSheetData2", {
-//   durable_name: "testDurableConsumer",
+//   await jsm.consumers.add("safeInputsDataPipeline", {
+//   durable_name: "to_add_to_kv_store_consumer",
 //   ack_policy: AckPolicy.None,
 //   ack_wait: nanos(5000000000),
 //   // filter_subject('subject to filter')
@@ -50,12 +50,17 @@ console.log(`Updated the ${cfg.name} stream ...`)
 
 // Bind stream to durable consumer
 const opts = consumerOpts();
-opts.bind("extractedSheetData2", "testDurableConsumer");
+opts.durable("safeInputsDataPipeline-kv-writer-consumer");
+opts.manualAck();
+opts.ackExplicit();
+opts.deliverTo(createInbox());
+
+opts.bind("safeInputsDataPipeline5", "safeInputsDataPipeline-kv-writer-consumer");
 console.log("Durable consumer bound to stream ...")
+
 
 // create the named KV or bind to it if it exists:
 const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //This can give insight into more than one stream! Note default history is 1 (no history)
-// const kv = await js.views.kv("extractedSheetData-kv-store"); 
 console.log("KV Store bound to stream ...\n")
 
 // ----- RETRIEVE DATA ---------

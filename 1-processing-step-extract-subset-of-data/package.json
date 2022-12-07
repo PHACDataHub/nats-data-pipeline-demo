@@ -1,8 +1,8 @@
 {
-  "name": "kv-store",
+  "name": "1-processing-step-extract-subset-of-data",
   "version": "1.0.0",
-  "description": "",
-  "main": "kv_writer.js",
+  "description": "This is an oversimplified example of the NATS messaging system.",
+  "main": "index.js",
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",

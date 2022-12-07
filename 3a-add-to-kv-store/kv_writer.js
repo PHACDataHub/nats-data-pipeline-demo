@@ -4,7 +4,7 @@
 // We can pull these messages back out with kv_reader.js (But will be placing a GraphQL API to pull back messages next)
 // ################################################
 
-// TODO - add HEADERS, clean, refactor GET HISTORY to work (look at max age and discard config?)
+// TODO - add HEADERS, GET HISTORY to work 
 
 //  ---- REFERENCES AND RESOURCES (Also see READme) : 
 // https://github.com/nats-io/nats.deno/blob/main/jetstream.md#kv
@@ -30,14 +30,14 @@ const jc = JSONCodec();
 // ----- STREAM MANAGEMENT ----- (TODO - extract this whole section)
 // ----- Create jetstream - new stream
 const jsm = await nc.jetstreamManager();
-const cfg = {
-  name: "extractedSheetData2",
-  subjects: ["extractedSheetData2.>"],
-  max_bytes: 30000000,
-};
-// // await jsm.streams.add(cfg)  // On stream creation - use this (comment out below)
-await jsm.streams.update(cfg.name, cfg) // If already exisits - use this (comment out above)
-console.log(`Updated the ${cfg.name} stream ...`)
+// const cfg = {
+//   name: "safeInputsDataPipeline5",
+//   subjects: ["safeInputsDataPipeline5.>"],
+//   max_bytes: 30000000,
+// };
+// await jsm.streams.add(cfg)  // On stream creation - use this (comment out below)
+// // await jsm.streams.update(cfg.name, cfg) // If already exisits - use this (comment out above)
+// console.log(`Updated the ${cfg.name} stream ...`)
 
 const js = nc.jetstream();
 
@@ -47,7 +47,7 @@ const js = nc.jetstream();
 // await jsm.streams.purge("extractedSheetData", { filter: "extractedSheetData.>" });
 
 // // ---- List all (jet)stream consumers for a stream
-// const stream = "extractedSheetData2"
+// const stream = "safeInputsDataPipeline5"
 // const consumers = await jsm.consumers.list(stream).next();
 // consumers.forEach((ci) => {
 //     console.log(ci);
@@ -57,13 +57,13 @@ const js = nc.jetstream();
 // // delete a particular consumer
 // await jsm.consumers.delete(stream, "testDurableConsumer");
 
-// // ----- Create Durable Consumer - This should only be done on set up...(consumer already in use so commented out)
-// // (also see this with different syntax https://docs.nats.io/using-nats/developer/develop_jetstream/kv)
+// ----- Create Durable Consumer - This should only be done on set up...(consumer already in use so commented out)
+// (also see this with different syntax https://docs.nats.io/using-nats/developer/develop_jetstream/kv)
 // const inbox = createInbox();
 // await jsm.consumers.add(
-//   "extractedSheetData2", {
-//     durable_name: "testDurableConsumer",
-//     ack_policy: AckPolicy.None,
+//   "safeInputsDataPipeline2", {
+//     durable_name: "to_add_to_kv_store_consumer2",
+//     // ack_policy: AckPolicy.None, // yeah - don't do this - the messages will continue to come in until acknowledged...
 //     ack_wait: nanos(5000000000),
 //     // filter_subject('subject to filter')
 //     deliver_subject: inbox,
@@ -73,40 +73,50 @@ const js = nc.jetstream();
 // ----- Bind stream to durable consumer (with memeory of what it has previously consumed)
 // (Note -consumers can consume messages from more than one stream)
 const opts = consumerOpts();
-opts.bind("extractedSheetData2", "testDurableConsumer");
+opts.durable("safeInputsDataPipeline-kv-writer-consumer");
+opts.manualAck();
+opts.ackExplicit();
+opts.deliverTo(createInbox());
+
+opts.bind("safeInputsDataPipeline5", "safeInputsDataPipeline-kv-writer-consumer");
 
 // ----- Create KV Store BUCKET or bind to jetstream if it exists:
 const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //- note bucket can store from multiple streams 
-// const kv = await js.views.kv("extractedSheetData-kv-store");
 
-// ---- display stream info 
-console.log("stream info \n");
-const si = await jsm.streams.info("extractedSheetData2");  
-console.log(si) 
+// // ---- display stream info 
+// console.log("stream info \n");
+// const si = await jsm.streams.info("safeInputsDataPipeline5");  
+// console.log(si) 
 
 
 // ----- Subscribe to message stream (these are currently being published from extract-metadata-content.index.js )
-const sub = await js.subscribe("extractedSheetData2.>", opts);
+// const sub = await js.subscribe("safeInputsDataPipeline.extractedData.>", opts);
+const subj = "safeInputsDataPipeline5.uppercased.>";
+const sub = await js.subscribe(subj, opts);
+// const sub = await js.subscribe("safeInputsDataPipeline5.uppercased.>", opts);
 console.log('🚀 Connected to NATS jetstream server...');
 
-const done = (async () => {
-  // listen for published messages via "extractedSheetData2.>" NATS subject
+(async () => {
   for await (const message of sub) {
     message.ack(); // acknowledge receipt
-    var payload  = jc.decode(message.data);
-    
-    // replace whitespace in filename (throws error if used in KV key)
-    // payload.filename = payload.filename.replace(/ /g,"_");  ("/[^A-Za-z0-9\.]/", "_")
+    var payload  = jc.decode(message.data)
+    // replace whitespace in filename (throws error if used in KV key) 
+      // - there is a more graceful way of doing this will come back and fix
+    payload.origFilename = payload.filename
     payload.filename = payload.filename.replace(/ /g,"_")
     payload.filename = payload.filename.replace(")","_")
     payload.filename = payload.filename.replace("(","_")
-    // console.log("FIXED FILENAME: ", payload.filename)
-    // console.log(payload)
+
+    
     const addKeyValue = await kv.put(payload.filename, message.data); // (key => file name, value => payload)
     console.log("\n------------------------------------------------")
-    console.log("Added to stream \nsequence:",message.info.streamSequence, "\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
+    console.log(`Recieved message on \"${subj}\"`)
+    // console.log("Added to KV Store \nsequence:",message.info.streamSequence, "\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
+    console.log("Added to KV Store \nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
+
   }
 })();
 
-await done;
-await nc.drain();
+
+// await nc.drain();
+nc.closed();

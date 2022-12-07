@@ -1,8 +1,8 @@
 {
-  "name": "extract-metadata-and-content",
+  "name": "3a-add-kv-store",
   "version": "1.0.0",
-  "description": "This is an oversimplified example of the NATS messaging system.",
-  "main": "index.js",
+  "description": "",
+  "main": "kv_writer.js",
   "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
