@@ -14,7 +14,7 @@ npm install
 
 Note: the system expects a `.env` file in the root of the `json-to-db` floder containing the NATS_JWT value.
 ```
-$ npm start &
+$ npm start 
 ```
 
 ## Running the tests
