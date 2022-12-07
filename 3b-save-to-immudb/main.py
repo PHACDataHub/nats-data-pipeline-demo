@@ -3,64 +3,53 @@ import asyncio
 import contextlib
 import nats
 import json
-#  (reference https://github.com/codenotary/immudb-client-examples/blob/master/python/hello_world.py)
-
-# Immudb(immutable database) - note have docker container up and running 
-# also need NGS.creds file at root of this folder
+import ast
+from nats.errors import TimeoutError
 from immudb import ImmudbClient
+#  (references https://github.com/codenotary/immudb-client-examples/blob/master/python/hello_world.py)
+#  And https://github.com/nats-io/nats.py/blob/main/examples/jetstream.py
 
-client = ImmudbClient("0.0.0.0:3322")
-client.login(username="immudb", password="immudb")
 
-# async def message_handler(msg):
-#     subject = msg.subject
-#     # reply = msg.reply
-#     data = msg.data.decode()
-#     print("Received a message on '{subject}': {data}".format(
-#         subject=subject, data=data))
+async def main():
+    # Immudb connection ((immutable database) - note have docker container up and running )
+    client = ImmudbClient("0.0.0.0:3322")
+    client.login(username="immudb", password="immudb")
 
-async def run(loop):
-    # nc = await nats.connect("tls://connect.ngs.global:4222", user_credentials="NGS.creds")
+    # NATS connection
+    # nc = await nats.connect("tls://connect.ngs.global:4222", user_credentials="NGS.creds") # (need NGS.creds file at root of this folder if using this)
     nc = await nats.connect("demo.nats.io:4222")
     print('🚀 Connected to NATS server...')
 
+    # Create JetStream context.
+    js = nc.jetstream()
+    stream = "safeInputsDataPipeline5"
     subject = "safeInputsDataPipeline5.uppercased.>"
-    
+    await js.add_stream(name=stream, subjects=["safeInputsDataPipeline5.>"])
 
-    sub = await nc.subscribe(subject) # TODO - change to durable consumer
-    # sub = await nc.subscribe(subject, durable="to-immudb-consumer") # This one is durable across restarts (only pick up new messages)
-    # msg = await sub.next_msg() # okay this tends to time out... but do need to acknowledge message otherwise will re-read
-    # await msg.ack()
-    print("Listening for requests on", subject,"subject... \n \n")
+    # Createpush durable consumer
+    sub = await js.subscribe(subject, durable="uppercasingConsumerForImmudb")
 
     while True:
         await asyncio.sleep(1)
         with contextlib.suppress(Exception):
-            # data = msg.data.decode()
-            # print(data)
+
             async for msg in sub.messages:
-            # async for msg in msge.messages:
+                
                 await msg.ack()
-
-                #TODO change to this https://nats-io.github.io/nats.py/modules.html#connection-properties
+ 
                 print('\n--------------------------------------------')
-                # print(f"Received a message on '{msg.subject}': \n \n {msg.data.decode()}")
-                print(f"Received a message on '{subject}': \n")
-                print(f"Adding {msg.subject} to database.")
-                # try:
-                #     # filename = msg.subject[msg.subject.index('.')+1:] # Removes first section (anything before and including the first '.')
-                #     filename = msg.subject
-                #     # TODO see if undefined isn't flagging an exception and make sure not overriding other values (maybe read to see if there)
-                # except Exception:
-                #     filename = msg.subject
+                print(f'Received a message on "{subject}"')
+                print(f"Adding {msg.subject} to database.\n")
 
-                # insert in db
-                # data_to_insert = json.dumps(msg.data.decode())
-                filename = msg.data.decode()["filename"]
-                print(filename)
+                # payload comes back as a str - and json.loads and ast aren't behaving as expected...
+                # pull out everything between first : and first , **This is super janky way of doing this, and will need to come back to fix
+                payload = msg.data.decode()
+                start = ':"'
+                end = '","me'
+            
+                filename = (payload.split(start))[1].split(end)[0]
                 data_to_insert = msg.data.decode()
-                print(data_to_insert)
-                # key = subject.encode('utf8')
+
                 key = filename.encode('utf8')
                 value = data_to_insert.encode('utf8')
 
@@ -73,13 +62,7 @@ async def run(loop):
                 # print('--------------------------------')
                 print("Message saved to db: \nKey: ", key.decode('utf8'), "\nValue: ", saved_value)
 
-
-    # Terminate connection to NATS.
-    await nc.drain()
+    await nc.close()
 
 if __name__ == '__main__':
-    # asyncio.run(main())
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(run(loop))
-    loop.run_forever()
-    loop.close()
+    asyncio.run(main())

@@ -2,6 +2,10 @@
 
 This project explores the use of [NATS](https://nats.io/) to process and store data.  
 
+NATS is an open-source, cloud-native messaging system by [Synadia](https://synadia.com/). It simplifies the way services can communicate, and can easily span multi-cloud and multi-geo.  It allows for a variety of communication patterns that can be configured to meet the needs of many use cases.
+
+[Here](https://www.youtube.com/watch?v=hjXIUPZ7ArM&t=1s) is a video that give an overview of NATS.
+
 *Please note this is a work in progress*
 
 Each service subscribes and listens to a NATS subject (like a channel), performs a function, then publishes to a different NATS subject - that is subscribed to by a subsequent service. 
