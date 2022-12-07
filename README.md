@@ -14,7 +14,7 @@ The current flow is initiated with the
 * (sub) -> 2-processing-step-uppercase (where the data is uppercased) -> (pub) 
   * *nats jetstream message on subject "safeInputsDataPipeline5.uppercased.{filename}"* -> 
 * (sub) ->3a-add-to-kv-store (puts message into the key value store, in this case using it as a db) 
-* (sub) ->3b-save-to-immudb (a versioning db).  
+* *AND* (sub) ->3b-save-to-immudb (a versioning db).  
 
 api-kv-store is a GraphQL API used to add or retrieve data from kv-store. 
 
