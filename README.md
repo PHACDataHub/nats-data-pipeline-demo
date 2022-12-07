@@ -23,7 +23,7 @@ Open up and start each service in a terminal/PowerShell and watch the data flow 
 Use the Yoga-GraphiQL interface to access the KV Store data and add additional data to the store. 
 Running 3a-add-to-kv-store.kv_reader.js runs watch commands and will explore history (update to come on history).
 
-Note that this isn't cloud ready (yet) so you can all modules of the pipeline locally for now. 
+Note that this isn't cloud ready (yet) so you can run all modules of the pipeline locally for now. 
 
 With this hoping to explore the [NATS services API](https://www.youtube.com/watch?v=vUWw3HVY35E).  And confirm and the capabilities of using NATS key-value and object store to act as a database. ([This video](https://www.youtube.com/watch?v=EJJ2SG-cKyM) provides a good jetstream overview and touches on key-value and object stores towards the end.) 
 
