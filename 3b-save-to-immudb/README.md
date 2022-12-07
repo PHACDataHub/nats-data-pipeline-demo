@@ -2,7 +2,9 @@
 
 This is an oversimplified example of the NATS messaging system.
 
-This service subscribes to the "extractedSheetData" NATS subject (published by [extract-metadata-content](../extract-metadata-content/)) and adds this payload into an [immudb](https://immudb.io/) database.  Immudb was chosen as the ability to reproduce reports and datasets amidst a slew of on going schema changes was a requirement mentioned for some surveillance teams.  As the immudb node SDK had some issues, this module uses python.  
+This service subscribes to the "safeInputsDataPipeline5.uppercased.>" NATS subject (published by [2-processing-step-uppercase](../2-processing-step-uppercase)) and adds this payload into an [immudb](https://immudb.io/) database.  Immudb was chosen as the ability to reproduce reports and datasets amidst a slew of on going schema changes was a requirement mentioned for some surveillance teams.  As the immudb node SDK had some issues, this module uses python.  
+
+* Need to add jetstream consumer - hoping to complete this today (Dec 7)
 
 
 ## Installing dependencies
