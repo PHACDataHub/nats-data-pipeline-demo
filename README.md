@@ -9,7 +9,7 @@ Each service subscribes and listens to a NATS subject (like a channel), performs
 The current flow is initiated with the 
 * "upload" of a spreadsheet to https://safeinputs.alpha.canada.ca (the [safe inputs project](https://github.com/PHACDataHub/safe-inputs)) -> (pub)
   * *core nats message on subject "sheetData" (will change to jetstream shortly)* 
-* (sub) -> 1-processing-step-extract-subset-of-data (where the message is parsed - but really other work would be done here) -> (pub)
+* (sub) -> 1-processing-step-extract-subset-of-data (where the message is parsed - but really other work would be done here too - this is an oversimplified example) -> (pub)
   * *nats jetstream message on subject "safeInputsDataPipeline5.extractedData.{filename}"* -> 
 * (sub) -> 2-processing-step-uppercase (where the data is uppercased) -> (pub) 
   * *nats jetstream message on subject "safeInputsDataPipeline5.uppercased.{filename}"* -> 
