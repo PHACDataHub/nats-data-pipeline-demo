@@ -4,6 +4,7 @@ import contextlib
 import nats
 import json
 import ast
+import time
 from nats.errors import TimeoutError
 from immudb import ImmudbClient
 #  (references https://github.com/codenotary/immudb-client-examples/blob/master/python/hello_world.py)
@@ -22,9 +23,9 @@ async def main():
 
     # Create JetStream context.
     js = nc.jetstream()
-    stream = "safeInputsDataPipeline5"
-    subject = "safeInputsDataPipeline5.uppercased.>"
-    await js.add_stream(name=stream, subjects=["safeInputsDataPipeline5.>"])
+    stream = "safeInputsDataPipeline7"
+    subject = "safeInputsDataPipeline7.uppercased.>"
+    await js.add_stream(name=stream, subjects=["safeInputsDataPipeline7.>"])
 
     # Createpush durable consumer
     sub = await js.subscribe(subject, durable="uppercasingConsumerForImmudb")
@@ -41,6 +42,9 @@ async def main():
                 print(f'Received a message on "{subject}"')
                 print(f"Adding {msg.subject} to database.\n")
 
+                print("Timestamp:", round(time.time()*1000),'\n')
+
+                
                 # payload comes back as a str - and json.loads and ast aren't behaving as expected...
                 # pull out everything between first : and first , **This is super janky way of doing this, and will need to come back to fix
                 payload = msg.data.decode()

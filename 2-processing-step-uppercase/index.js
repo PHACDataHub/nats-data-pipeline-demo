@@ -1,88 +1,85 @@
-import 'dotenv/config'
-import { connect, JSONCodec, consumerOpts, createInbox, nanos, AckPolicy, jwtAuthenticator } from 'nats';
+//#################################################
+// index.js
+// ################################################
 
-// NATS variables
+
+import {StringCodec, connect,  JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
+
+// ----- Create NATS Connection ----- 
 // const jwt = process.env.NATS_JWT  // expected NATS_JWT value stored .env if running locally or as kubernetes secret env variable
-// const NATS_URL = "tls://connect.ngs.global:4222"  // Synadia's NATS server (https://app.ngs.global/)
-const NATS_URL = "demo.nats.io:4222"
-const jc = JSONCodec(); // for decoding NATS messages
-
-// Connect to NATS server using jwt authentication 
+// const NATS_URL = "tls://connect.ngs.global:4222"  // Synadia's NATS NGS server (https://app.ngs.global/)
+const NATS_URL = "demo.nats.io:4222" // Synadia's NATS demo server
 const nc = await connect({ 
   servers: NATS_URL, 
-  // authenticator: jwtAuthenticator(jwt),
+//   authenticator: jwtAuthenticator(jwt), // Needed if using NGS server
 });
 
-// Setup jetstream
+const jc = JSONCodec(); 
+
+// ----- STREAM MANAGEMENT ----- 
+// ----- Create jetstream - new stream
 const jsm = await nc.jetstreamManager();
-// const cfg = {
-//   name: "safeInputsDataPipeline4",
-//   subjects: ["safeInputsDataPipeline4.>"],
-//   max_bytes: 30000000,
-//   // ack_policy: "none",
-//   no_ack: true,
-//   // ack_wait: 50000,
-// };
-// // await jsm.streams.add(cfg)  // If needs to be created - use this
-// await jsm.streams.update(cfg.name, cfg) //If already exisits - use this
-// console.log(`Updated the ${cfg.name} stream ...`)
+
 const js = nc.jetstream();
 
-// // Create a consumer 
-// const inbox = createInbox();
-//   await jsm.consumers.add("safeInputsDataPipeline5", {
-//   durable_name: "extractedDataConsumer6",
-//   // ack_policy: AckPolicy.None,// Okay - this should probably not be none - will flip to Explicit when flowing
-//   // ack_wait: nanos(5000000000),
-//   // filter_subject('subject to filter')
-//   deliver_subject: inbox,
-// });
+// add a stream
+const stream = "safeInputsDataPipeline7"
+const streamSubj = `safeInputsDataPipeline7.>`;
+await jsm.streams.add({ name: stream, subjects: [streamSubj] });
+
+
+// ----- Bind stream to durable consumer (with memeory of what it has previously consumed)
+// (Note -consumers can consume messages from more than one stream)
 const opts = consumerOpts();
-opts.durable("step2consumer");
+opts.durable("safeInputsDataPipeline-step2Consumer");
 opts.manualAck();
 opts.ackExplicit();
 opts.deliverTo(createInbox());
 
-const subj = "safeInputsDataPipeline5.extractedData.>";
-const sub = await js.subscribe(subj, opts); // autocreates consumer
-
-// // Bind stream to durable consumer
-opts.bind("safeInputsDataPipeline5", "step2consumer");
-console.log("Durable consumer bound to stream ...")
+opts.bind("safeInputsDataPipeline7", "safeInputsDataPipeline-step2Consumer");
 
 function publish(payload, filename) {
-  nc.publish(`safeInputsDataPipeline5.uppercased.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
-}
+    js.publish(`safeInputsDataPipeline7.uppercased.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
+  }
 
-console.log('🚀 Connected to NATS server...');
+// ----- Subscribe to message stream (these are currently being published from extract-metadata-content.index.js )
+const subj = "safeInputsDataPipeline7.extractedData.>";
+const sub = await js.subscribe(subj, opts);
+
+console.log('🚀 Connected to NATS jetstream server...');
 
 (async () => {
-    for await (const message of sub) {
-      message.ack();
-      var payload  = jc.decode(message.data)
+  for await (const message of sub) {
+    message.ack();
+    var payload  = jc.decode(message.data)
 
-      // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
+    // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
 
-      const uppercasedContent = JSON.stringify(payload.content).toUpperCase()
-      const uppercasedObj = {
-        "filename": payload.filename, 
-        "metadata": payload.metadata,
-        "content": JSON.parse(uppercasedContent)
-      }
-      console.log(
-        `\n\n---------------------------\n\nRecieved message on \"${subj}\"`,
-        `\nPublishing the following on \"safeInputsDataPipeline5.uppercased.${payload.filename}\"\n\n`, 
-
-        {
-        "filename": payload.filename, 
-        "metadata": payload.metadata,
-        "content": uppercasedContent
-      })
-      
-      publish(uppercasedObj, payload.filename)
+    const uppercasedContent = JSON.stringify(payload.content).toUpperCase()
+    const uppercasedObj = {
+      "filename": payload.filename, 
+      "metadata": payload.metadata,
+      "content": JSON.parse(uppercasedContent)
     }
-  })();
-  
-// don't exit until the client closes
-await nc.closed();
+    console.log(
+      `\n\n---------------------------\n\nRecieved message on \"${subj}\"`,
+      // `\nPublishing the following on \"safeInputsDataPipeline6.uppercased.${payload.filename}\"\n\n`, 
+      `\nPublishing the following on \"safeInputsDataPipeline7.uppercased.filename\"\n\n`, 
+      `Timestamp: ${Date.now()}\n\n`, 
 
+
+      {
+      "filename": payload.filename, 
+      "metadata": payload.metadata,
+      "content": uppercasedContent
+    })
+    
+    // publish(uppercasedObj, payload.filename)
+    publish(uppercasedObj, "filename") //Okay - figured out what was breaking the js publish - it was the spaces in filename!
+    // will need to fix! 
+  }
+})();
+
+
+// await nc.drain();
+nc.closed();

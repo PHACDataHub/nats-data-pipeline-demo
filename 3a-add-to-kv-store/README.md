@@ -42,7 +42,7 @@ $ npm install
 ## Writing to the KV Store:
 
 ```bash
-$ node kv_writer.js
+$ npm start
 ```
 
 ## Reading from the KV Store:
@@ -50,4 +50,5 @@ $ node kv_writer.js
 ```bash
 $ node kv_reader.js
 ```
+(or use api)
 * Tests to come shortly

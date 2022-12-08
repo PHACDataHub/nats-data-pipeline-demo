@@ -15,29 +15,15 @@ const nc = await connect({
 
 // Setup jetstream
 const jsm = await nc.jetstreamManager();
-// const cfg = {
-//   name: "safeInputsDataPipeline4",
-//   subjects: ["safeInputsDataPipeline4.>"],
-//   max_bytes: 30000000,
-//   // ack_wait: 50000,
-//   // no_ack: true,
-//   ack_policy: "none",
-// };
-// await jsm.streams.add(cfg)  // If needs to be created - use this
-// await jsm.streams.update(cfg.name, cfg) //If already exisits - use this
-// console.log(`Updated the ${cfg.name} stream ...`)
-
-// add stream 
-
 const js = nc.jetstream();
 
 // add a stream
-const stream = "safeInputsDataPipeline5";
-const subj = `safeInputsDataPipeline5.>`;
+const stream = "safeInputsDataPipeline7";
+const subj = `safeInputsDataPipeline7.>`;
 await jsm.streams.add({ name: stream, subjects: [subj] });
 
 function publish(payload, filename) {
-    js.publish(`safeInputsDataPipeline5.extractedData.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
+    js.publish(`safeInputsDataPipeline7.extractedData.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
   }
 
 // Subscribe and listen to the 'sheetData' stream
@@ -58,7 +44,9 @@ console.log('🚀 Connected to NATS server...');
       const content = wholePayload.sheets
       console.log(
         '\n \n ------------------------------------------------------------- \nRecieved message on \"sheetData\" subject',
-        `\nPublishing the following on safeInputsDataPipeline5.extractedData.${filename}\n\n`, 
+        `\nPublishing the following on safeInputsDataPipeline7.extractedData.filename\n\n`, 
+        // `\nPublishing the following on safeInputsDataPipeline7.extractedData.${filename}\n\n`, 
+        `Timestamp: ${Date.now()}\n\n`, 
         filename,
         '\n',
         metadata, 
@@ -72,7 +60,7 @@ console.log('🚀 Connected to NATS server...');
         "metadata": metadata,
         "content": content
       } 
-      publish(newPayload) //"`safeInputsDataPipeline.extractedData.${filename}" 
+      publish(newPayload, "filenames") //"`safeInputsDataPipeline.extractedData.${filename}" 
     }
   }
 })();

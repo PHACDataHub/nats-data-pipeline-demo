@@ -34,7 +34,7 @@ Note - until the history is fixed in the kv-store module, if you add new data th
 ```
 {getFile(filename:"test.xlsx")}
 ```
-Replace  filename with one from a file you've added. 
+Replace filename with one from a file you've added. 
 
 ## Running the tests
 

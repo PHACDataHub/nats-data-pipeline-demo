@@ -55,7 +55,7 @@ opts.manualAck();
 opts.ackExplicit();
 opts.deliverTo(createInbox());
 
-opts.bind("safeInputsDataPipeline5", "safeInputsDataPipeline-kv-writer-consumer");
+opts.bind("safeInputsDataPipeline7", "safeInputsDataPipeline-kv-writer-consumer");
 console.log("Durable consumer bound to stream ...")
 
 
