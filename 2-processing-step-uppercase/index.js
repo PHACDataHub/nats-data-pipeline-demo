@@ -22,11 +22,16 @@ const jsm = await nc.jetstreamManager();
 
 const js = nc.jetstream();
 
+// // add a stream
+// const stream = "safeInputsDataPipeline7"
+// const streamSubj = `safeInputsDataPipeline7.>`;
+// await jsm.streams.add({ name: stream, subjects: [streamSubj] });
 // add a stream
-const stream = "safeInputsDataPipeline7"
-const streamSubj = `safeInputsDataPipeline7.>`;
-await jsm.streams.add({ name: stream, subjects: [streamSubj] });
 
+const stream = "safeInputsDataPipelineTest"
+const streamSubj = `safeInputsDataPipelineTest.>`;
+
+await jsm.streams.add({ name: stream, subjects: [streamSubj] });
 
 // ----- Bind stream to durable consumer (with memeory of what it has previously consumed)
 // (Note -consumers can consume messages from more than one stream)
@@ -39,7 +44,7 @@ opts.deliverTo(createInbox());
 opts.bind("safeInputsDataPipeline7", "safeInputsDataPipeline-step2Consumer");
 
 function publish(payload, filename) {
-    js.publish(`safeInputsDataPipeline7.uppercased.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
+    js.publish(`safeInputsDataPipelineTest.uppercased.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
   }
 
 // ----- Subscribe to message stream (these are currently being published from extract-metadata-content.index.js )
@@ -59,7 +64,7 @@ console.log('🚀 Connected to NATS jetstream server...');
     const uppercasedObj = {
       "filename": payload.filename, 
       "metadata": payload.metadata,
-      "content": JSON.parse(uppercasedContent)
+      "content": payload.content//JSON.parse(uppercasedContent)) // need to fix this parsing
     }
     console.log(
       `\n\n---------------------------\n\nRecieved message on \"${subj}\"`,

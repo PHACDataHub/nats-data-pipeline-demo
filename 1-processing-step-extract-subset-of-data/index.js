@@ -21,6 +21,7 @@ const js = nc.jetstream();
 const stream = "safeInputsDataPipeline7";
 const subj = `safeInputsDataPipeline7.>`;
 await jsm.streams.add({ name: stream, subjects: [subj] });
+// await jsm.streams.purge(stream);
 
 function publish(payload, filename) {
     js.publish(`safeInputsDataPipeline7.extractedData.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging

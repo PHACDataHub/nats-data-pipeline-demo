@@ -22,18 +22,27 @@ const jsm = await nc.jetstreamManager();
 
 const js = nc.jetstream();
 
+// // add a stream
+// const stream = "safeInputsDataPipeline7"
+// const streamSubj = `safeInputsDataPipeline7.>`;
+// await jsm.streams.add({ name: stream, subjects: [streamSubj] });
+
 // // add consumer to e
 const inbox = createInbox();
-await jsm.consumers.add("safeInputsDataPipeline7", {
-  durable_name: "step3Consumer",
+await jsm.consumers.add("safeInputsDataPipelineTest", {
+  durable_name: "step3aConsumer",
 //   ack_policy: AckPolicy.None,
   ack_policy: AckPolicy.Explicit,
   deliver_subject: inbox,
 });
 
 const opts = consumerOpts();
-opts.bind("safeInputsDataPipeline7", "step3Consumer");
+opts.bind("safeInputsDataPipelineTest", "step3aConsumer");
 console.log("Durable consumer bound to stream ...")
+
+// // retrieve a consumer's configuration
+// const ci = await jsm.consumers.info("safeInputsDataPipelineTest", "step3aConsumer");
+// console.log(ci);
 
 
 // ----- Create KV Store BUCKET or bind to jetstream if it exists:
@@ -41,7 +50,7 @@ const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //
 
 // ----- Subscribe to message stream (these are currently being published from 1-processing-step-extract-subsection-data.index.js )
 
-const subj = "safeInputsDataPipeline7.uppercased.>";
+const subj = "safeInputsDataPipelineTest.uppercased.>";
 const sub = await js.subscribe(subj, opts);
 
 console.log('🚀 Connected to NATS jetstream server...');
@@ -59,7 +68,8 @@ console.log('🚀 Connected to NATS jetstream server...');
     
     const addKeyValue = await kv.put(payload.filename, message.data); // (key => file name, value => payload)
     console.log("\n------------------------------------------------")
-    console.log(`Recieved message on \"${subj}\"`)
+    // console.log(`Recieved message on \"${subj}\"`)
+    console.log ("Recieved on ", message.subject)
     // console.log("Added to KV Store \nsequence:",message.info.streamSequence, "\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
     console.log("Added to KV Store \n\nTimestamp: ,",Date.now(),"\n\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
 

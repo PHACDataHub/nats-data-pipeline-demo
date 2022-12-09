@@ -23,9 +23,9 @@ async def main():
 
     # Create JetStream context.
     js = nc.jetstream()
-    stream = "safeInputsDataPipeline7"
-    subject = "safeInputsDataPipeline7.uppercased.>"
-    await js.add_stream(name=stream, subjects=["safeInputsDataPipeline7.>"])
+    stream = "safeInputsDataPipelineTest"
+    subject = "safeInputsDataPipelineTest.uppercased.>"
+    await js.add_stream(name=stream, subjects=["safeInputsDataPipelineTest.>"])
 
     # Createpush durable consumer
     sub = await js.subscribe(subject, durable="uppercasingConsumerForImmudb")
@@ -39,7 +39,8 @@ async def main():
                 await msg.ack()
  
                 print('\n--------------------------------------------')
-                print(f'Received a message on "{subject}"')
+                # print(f'Received a message on "{subject}"')
+                print(f'Received a message on {msg.subject}')
                 print(f"Adding {msg.subject} to database.\n")
 
                 print("Timestamp:", round(time.time()*1000),'\n')
