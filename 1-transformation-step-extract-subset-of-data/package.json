@@ -1,8 +1,9 @@
 {
-  "name": "2-processing-step-uppercase",
+  "name": "1-transformation-step-extract-subset-of-data",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",  "type": "module",
+  "description": "This is an oversimplified example of the NATS messaging system.",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "lint": "eslint src",
@@ -13,7 +14,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "nats": "^2.9.2"
+    "dotenv-safe": "^8.2.0",
+    "nats": "^2.9.0"
   }
 }

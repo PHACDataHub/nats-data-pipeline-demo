@@ -1,4 +1,4 @@
-# 1 Processing Step - Extract Subset of Data
+# 1 Transformation Step - Extract Subset of Data
 
 This is an oversimplified example of the NATS messaging system.
 

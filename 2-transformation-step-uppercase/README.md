@@ -1,4 +1,4 @@
-# 2 Processing Step - Uppercasing
+# 2 Transformation Step - Uppercasing
 
 This is an oversimplified example of the NATS messaging system.
 
