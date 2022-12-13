@@ -1,9 +1,13 @@
 //#################################################
-// index.js
+// 
+// index.js (3a-add-to-kv-store)
+// 
+// Adds messages to NATS KV (Key-Value) Store
+// Listens to the jetstream published by 2-transfomation-step-uppercase.index.js.
 // ################################################
 
-
-import {StringCodec, connect,  JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
+import 'dotenv/config'
+import {connect,  JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
 
 // ----- Create NATS Connection ----- 
 // const jwt = process.env.NATS_JWT  // expected NATS_JWT value stored .env if running locally or as kubernetes secret env variable
@@ -16,41 +20,27 @@ const nc = await connect({
 
 const jc = JSONCodec(); 
 
-// ----- STREAM MANAGEMENT ----- 
-// ----- Create jetstream - new stream
+// ----- STREAM MANAGEMENT 
 const jsm = await nc.jetstreamManager();
-
 const js = nc.jetstream();
 
-// // add a stream
-// const stream = "safeInputsDataPipeline7"
-// const streamSubj = `safeInputsDataPipeline7.>`;
-// await jsm.streams.add({ name: stream, subjects: [streamSubj] });
-
-// // add consumer to e
+// ----- Add a consumer for the stream published from 2-transformation-step-uppercase.index.js
 const inbox = createInbox();
-await jsm.consumers.add("safeInputsDataPipelineTest", {
-  durable_name: "step3aConsumer",
-//   ack_policy: AckPolicy.None,
+await jsm.consumers.add("safeInputsUppercased", { // stream
+  durable_name: "safeInputsUppercasedKVConsumer",
   ack_policy: AckPolicy.Explicit,
   deliver_subject: inbox,
 });
 
 const opts = consumerOpts();
-opts.bind("safeInputsDataPipelineTest", "step3aConsumer");
+opts.bind("safeInputsUppercased", "safeInputsUppercasedKVConsumer");
 console.log("Durable consumer bound to stream ...")
-
-// // retrieve a consumer's configuration
-// const ci = await jsm.consumers.info("safeInputsDataPipelineTest", "step3aConsumer");
-// console.log(ci);
-
 
 // ----- Create KV Store BUCKET or bind to jetstream if it exists:
 const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //- note bucket can store from multiple streams 
 
-// ----- Subscribe to message stream (these are currently being published from 1-processing-step-extract-subsection-data.index.js )
-
-const subj = "safeInputsDataPipelineTest.uppercased.>";
+// ----- Subscribe to message stream (these are currently being published from  2-transfomation-step-uppercase.index.js )
+const subj = "safeInputsUppercased.>";
 const sub = await js.subscribe(subj, opts);
 
 console.log('🚀 Connected to NATS jetstream server...');
@@ -59,6 +49,8 @@ console.log('🚀 Connected to NATS jetstream server...');
   for await (const message of sub) {
     message.ack(); // acknowledge receipt
     var payload  = jc.decode(message.data)
+    console.log(payload)
+    
     // replace whitespace in filename (throws error if used in KV key) 
       // - there is a more graceful way of doing this will come back and fix
     payload.origFilename = payload.filename
@@ -67,12 +59,10 @@ console.log('🚀 Connected to NATS jetstream server...');
     payload.filename = payload.filename.replace("(","_")
     
     const addKeyValue = await kv.put(payload.filename, message.data); // (key => file name, value => payload)
-    console.log("\n------------------------------------------------")
-    // console.log(`Recieved message on \"${subj}\"`)
-    console.log ("Recieved on ", message.subject)
-    // console.log("Added to KV Store \nsequence:",message.info.streamSequence, "\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
-    console.log("Added to KV Store \n\nTimestamp: ,",Date.now(),"\n\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
 
+    console.log("\n------------------------------------------------")
+    console.log ("Recieved on ", message.subject)
+    console.log("Added to KV Store \n\nTimestamp: ,",Date.now(),"\n\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
   }
 })();
 
@@ -96,6 +86,10 @@ nc.closed();
 //     console.log(ci);
 // });
 
+// // retrieve a consumer's configuration
+// const ci = await jsm.consumers.info("safeInputsDataPipelineTest", "step3aConsumer");
+// console.log(ci);
+
 // // ---- Delete Consumer 
 // // delete a particular consumer
 // await jsm.consumers.delete(stream, "testDurableConsumer");
@@ -114,25 +108,6 @@ nc.closed();
 //   });
 // const sub = await js.subscribe(subj, opts);
 // process messages...
-
-
-// // ----- Subscribe to message stream (these are currently being published from extract-metadata-content.index.js )
-// const subj = "safeInputsDataPipeline7.uppercased.>";
-// const sub = await js.subscribe(subj, opts);
-
-// console.log('🚀 Connected to NATS jetstream server...');
-
-// (async () => {
-//   for await (const message of sub) {
-//     message.ack();
-//     var payload  = jc.decode(message.data)
-
-//     // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
-//     console.log(payload)
-  
-//   }
-// })();
-
 
 // await nc.drain();
 nc.closed();

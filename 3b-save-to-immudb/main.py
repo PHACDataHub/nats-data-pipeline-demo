@@ -23,12 +23,12 @@ async def main():
 
     # Create JetStream context.
     js = nc.jetstream()
-    stream = "safeInputsDataPipelineTest"
-    subject = "safeInputsDataPipelineTest.uppercased.>"
-    await js.add_stream(name=stream, subjects=["safeInputsDataPipelineTest.>"])
+    stream = "safeInputsUppercased"
+    subject = "safeInputsUppercased.>"
+    await js.add_stream(name=stream, subjects=[subject])
 
-    # Createpush durable consumer
-    sub = await js.subscribe(subject, durable="uppercasingConsumerForImmudb")
+    # Createpush durable consumer for the stream being published from 2-transformation-step-uppercase.index.js
+    sub = await js.subscribe(subject, durable="safeInputsUppercasedImmudbConsumer")
 
     while True:
         await asyncio.sleep(1)
@@ -45,7 +45,6 @@ async def main():
 
                 print("Timestamp:", round(time.time()*1000),'\n')
 
-                
                 # payload comes back as a str - and json.loads and ast aren't behaving as expected...
                 # pull out everything between first : and first , **This is super janky way of doing this, and will need to come back to fix
                 payload = msg.data.decode()

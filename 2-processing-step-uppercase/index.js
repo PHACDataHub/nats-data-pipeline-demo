@@ -1,8 +1,13 @@
 //#################################################
-// index.js
+//
+// index.js (2-transformation-step-uppercase)
+//
+// This is an over-simplified transformation - it's just here to show that we can have a real-time data pipeline with 
+// some transformations. Listens to jetstream that 1-transfomation-step-extract-subset-of-data.index.js publishes on.
 // ################################################
 
-
+// TODO - maybe try https://github.com/hmenyus/node-calls-python for numpy transformations?
+import 'dotenv/config'
 import {StringCodec, connect,  JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
 
 // ----- Create NATS Connection ----- 
@@ -17,38 +22,34 @@ const nc = await connect({
 const jc = JSONCodec(); 
 
 // ----- STREAM MANAGEMENT ----- 
-// ----- Create jetstream - new stream
 const jsm = await nc.jetstreamManager();
-
 const js = nc.jetstream();
 
-// // add a stream
-// const stream = "safeInputsDataPipeline7"
-// const streamSubj = `safeInputsDataPipeline7.>`;
-// await jsm.streams.add({ name: stream, subjects: [streamSubj] });
-// add a stream
-
-const stream = "safeInputsDataPipelineTest"
-const streamSubj = `safeInputsDataPipelineTest.>`;
+// ----- Add a stream to publish on
+const stream = "safeInputsUppercased"
+const streamSubj = `safeInputsUppercased.>`;
 
 await jsm.streams.add({ name: stream, subjects: [streamSubj] });
 
-// ----- Bind stream to durable consumer (with memeory of what it has previously consumed)
-// (Note -consumers can consume messages from more than one stream)
-const opts = consumerOpts();
-opts.durable("safeInputsDataPipeline-step2Consumer");
-opts.manualAck();
-opts.ackExplicit();
-opts.deliverTo(createInbox());
-
-opts.bind("safeInputsDataPipeline7", "safeInputsDataPipeline-step2Consumer");
-
 function publish(payload, filename) {
-    js.publish(`safeInputsDataPipelineTest.uppercased.${filename}`, jc.encode(payload)) // This needs to be js but having timeouts - still debugging
-  }
+  js.publish(`${stream}.${filename}`, jc.encode(payload)) 
+}
 
-// ----- Subscribe to message stream (these are currently being published from extract-metadata-content.index.js )
-const subj = "safeInputsDataPipeline7.extractedData.>";
+// ----- Create a durable consumer (with memeory of what it has previously consumed)
+// // (Note -consumers can consume messages from more than one stream)
+const inbox = createInbox();
+await jsm.consumers.add("safeInputsExtractedSubset", { // adds consumer to stream
+  durable_name: "safeInputsExtractedSubsetConsumer",
+  ack_policy: AckPolicy.Explicit,
+  deliver_subject: inbox,
+});
+const opts = consumerOpts();
+
+// Bind consumer to jetstream
+opts.bind("safeInputsExtractedSubset", "safeInputsExtractedSubsetConsumer"); //()
+
+// ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
+const subj = "safeInputsExtractedSubset.>";
 const sub = await js.subscribe(subj, opts);
 
 console.log('🚀 Connected to NATS jetstream server...');
@@ -60,28 +61,36 @@ console.log('🚀 Connected to NATS jetstream server...');
 
     // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
 
-    const uppercasedContent = JSON.stringify(payload.content).toUpperCase()
-    const uppercasedObj = {
-      "filename": payload.filename, 
-      "metadata": payload.metadata,
-      "content": payload.content//JSON.parse(uppercasedContent)) // need to fix this parsing
-    }
-    console.log(
-      `\n\n---------------------------\n\nRecieved message on \"${subj}\"`,
-      // `\nPublishing the following on \"safeInputsDataPipeline6.uppercased.${payload.filename}\"\n\n`, 
-      `\nPublishing the following on \"safeInputsDataPipeline7.uppercased.filename\"\n\n`, 
-      `Timestamp: ${Date.now()}\n\n`, 
+  //   for (var i = 0; i < payload.content.length; ++i) {
+  //     payload.content[i].data = (JSON.stringify(payload.content[i].data)).toUpperCase()
 
+  //     //TODO - determine what is causing JSON.parse of above to fail at times
+  // }
+
+    console.log(
+      `\n\n---------------------------\n\n`,
+      `Recieved message on \"${subj}\"\n`,
+      `Publishing the following on \"${stream}.filename\"\n\n`, 
+      `Timestamp: ${Date.now()}\n\n`, 
 
       {
       "filename": payload.filename, 
       "metadata": payload.metadata,
-      "content": uppercasedContent
+      "content": payload.content
     })
     
-    // publish(uppercasedObj, payload.filename)
-    publish(uppercasedObj, "filename") //Okay - figured out what was breaking the js publish - it was the spaces in filename!
-    // will need to fix! 
+    // const newPayload =  {
+    //   "filename": payload.filename, 
+    //   "metadata": payload.metadata,
+    //   "content": payload.content
+    //   // "content": JSON.parse(payload.content)
+    // }
+
+    // // publish(uppercasedObj, payload.filename)
+    // // publish(uppercasedObj, "filename") //Okay - figured out what was breaking the js publish - it was the spaces in filename!
+
+    // publish(newPayload, "filename")
+    publish(payload, "filename") 
   }
 })();
 

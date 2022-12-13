@@ -1,4 +1,4 @@
-// Import modules
+
 import 'dotenv/config'
 // import { Server } from './src/Server.js'
 import { schema } from './src/schema.js'
@@ -16,13 +16,6 @@ const yoga = createYoga({
 });
 const app = express();
 app.use("/", yoga);
-
-
-// function readFromKVStore (filename){
-//   // get from KVstream 
-//   const fileData = filename
-//   return(fileData)
-// }
 
 process.on('SIGTERM', () => process.exit(0))
 process.on('SIGINT', () => process.exit(0))
