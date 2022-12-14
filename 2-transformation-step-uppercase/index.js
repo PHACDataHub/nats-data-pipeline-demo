@@ -54,42 +54,62 @@ const sub = await js.subscribe(subj, opts);
 
 console.log('🚀 Connected to NATS jetstream server...');
 
+
+function capitalize(object) { 
+   // https://www.quora.com/How-do-I-capitalize-keys-and-values-in-JSON-object-recursively
+	var isArray = Array.isArray(object); 
+	for (let key in object) { 
+		let value = object[key]; 
+		let newKey = key; 
+		if (!isArray) { // if it is an object 
+			delete object[key]; // firstly remove the key 
+			newKey = key.toUpperCase(); // secondly generate new key (capitalized) 
+		} 
+		let newValue = value; 
+		if (typeof value != "object") { // if it is not an object (array or object in fact), stops here 
+			if (typeof value == "string") { 
+				newValue = value.toUpperCase(); // if it is a string, capitalize it 
+			} 
+		} else { // if it is an object, recursively capitalize it 
+			newValue = capitalize(value); 
+		} 
+		object[newKey] = newValue; 
+	} 
+	return object; 
+} 
+
+function printPayload(payload) { 
+  for (var i = 0; i < payload.content.length; ++i) {
+    console.log(JSON.stringify(payload.content[i]))
+    // payload.content[i].data = capitalize(payload.content[i].data)
+  }
+}
+
 (async () => {
   for await (const message of sub) {
     message.ack();
     var payload  = jc.decode(message.data)
 
+
     // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
 
-  //   for (var i = 0; i < payload.content.length; ++i) {
-  //     payload.content[i].data = (JSON.stringify(payload.content[i].data)).toUpperCase()
+    // go through each sheet and capitalize the data part
+    for (var i = 0; i < payload.content.length; ++i) {
+      payload.content[i].data = capitalize(payload.content[i].data)
+  }
 
-  //     //TODO - determine what is causing JSON.parse of above to fail at times
-  // }
+    // console.log(
+    //   `\n\n---------------------------\n\n`,
+    //   `Recieved message on \"${subj}\"\n`,
+    //   `Publishing the following on \"${stream}.filename\"\n\n`, 
+    //   `Timestamp: ${Date.now()}\n\n`, 
 
-    console.log(
-      `\n\n---------------------------\n\n`,
-      `Recieved message on \"${subj}\"\n`,
-      `Publishing the following on \"${stream}.filename\"\n\n`, 
-      `Timestamp: ${Date.now()}\n\n`, 
-
-      {
-      "filename": payload.filename, 
-      "metadata": payload.metadata,
-      "content": payload.content
-    })
-    
-    // const newPayload =  {
-    //   "filename": payload.filename, 
-    //   "metadata": payload.metadata,
-    //   "content": payload.content
-    //   // "content": JSON.parse(payload.content)
-    // }
-
-    // // publish(uppercasedObj, payload.filename)
-    // // publish(uppercasedObj, "filename") //Okay - figured out what was breaking the js publish - it was the spaces in filename!
-
-    // publish(newPayload, "filename")
+    //   `{\nfilename: ${payload.filename},\n 
+    //   metadata: ${payload.metadata},\n
+    //   content: `,printPayload(payload), `\n
+    // }`)
+    console.log(JSON.stringify(payload))
+  
     publish(payload, "filename") 
   }
 })();

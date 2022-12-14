@@ -8,7 +8,7 @@
 // ################################################
 
 import 'dotenv/config'
-import { connect, JSONCodec, jwtAuthenticator } from 'nats';
+import { connect, JSONCodec, createInbox, AckPolicy, consumerOpts, jwtAuthenticator } from 'nats';
 
 // ---- NATS variables
 // const jwt = process.env.NATS_JWT  // expected NATS_JWT value stored .env if running locally or as kubernetes secret env variable
@@ -28,8 +28,8 @@ const js = nc.jetstream();
 
 // Add a stream to publish on 
 const stream = "safeInputsExtractedSubset";
-const subj = `safeInputsExtractedSubset.>`;
-await jsm.streams.add({ name: stream, subjects: [subj] });
+const streamSubj = `safeInputsExtractedSubset.>`;
+await jsm.streams.add({ name: stream, subjects: [streamSubj] });
 // await jsm.streams.purge(stream); 
 
 
@@ -37,7 +37,24 @@ function publish(payload, filename) {
     js.publish(`${stream}.${filename}`, jc.encode(payload)) 
   }
 
-// Subscribe and listen to the 'sheetData' stream
+// Add consumer to jetstream 
+const inbox = createInbox();
+await jsm.consumers.add("safeInputsRawSheetData", { // adds consumer to stream
+  durable_name: "safeInputsRawSheetDataConsumer",
+  ack_policy: AckPolicy.Explicit,
+  deliver_subject: inbox,
+});
+const opts = consumerOpts();
+
+// Bind consumer to jetstream
+opts.bind("safeInputsRawSheetData", "safeInputsRawSheetDataConsumer"); //()
+
+// // ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
+// const subj = "safeInputsRawSheetData.>";
+// const sub = await js.subscribe(subj, opts);
+// console.log('🚀 Connected to NATS server...');
+
+// // Subscribe and listen to the 'sheetData' stream
 const sub = nc.subscribe("sheetData");
 console.log('🚀 Connected to NATS server...');
 
