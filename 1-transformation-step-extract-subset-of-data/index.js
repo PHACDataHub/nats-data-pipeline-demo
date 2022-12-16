@@ -58,6 +58,14 @@ opts.bind("safeInputsRawSheetData", "safeInputsRawSheetDataConsumer"); //()
 const sub = nc.subscribe("sheetData");
 console.log('🚀 Connected to NATS server...');
 
+function replaceNonJetstreamCompatibleCharacters(filename){
+    // Jeststream subjects must only contain A-Z, a-z, 0-9, `-`, `_`, `/`, `=` or `.` and cannot start with `.`
+// This replaces these characters with '_' (for now)
+  const charactersReplaced = filename.replace(/[^a-z-\d_/=.]/gi, "_");
+  const spacesReplaced = charactersReplaced.replace(' ', '_')
+  return spacesReplaced
+}
+
 (async () => {
   // listen for messages, then parse out just the metadata from the top portion of https://safeinputs.alpha.canada.ca/pagesix
   // as well as the extracted spreadsheet data.
@@ -70,9 +78,11 @@ console.log('🚀 Connected to NATS server...');
       const filename = wholePayload.filename
       const metadata = wholePayload.workbook.Props
       const content = wholePayload.sheets
+      const filenameForJetstreamSubject = replaceNonJetstreamCompatibleCharacters(filename)
+
       console.log(
         '\n \n ------------------------------------------------------------- \nRecieved message on \"sheetData.>\"',
-        `\nPublishing the following on \"${stream}.filename\"\n\n`, 
+        `\nPublishing the following on \"${stream}.${filenameForJetstreamSubject}\"\n\n`, 
         `Timestamp: ${Date.now()}\n\n`, 
         filename,
         '\n',
@@ -86,7 +96,8 @@ console.log('🚀 Connected to NATS server...');
         "metadata": metadata,
         "content": content
       } 
-      publish(newPayload, "filenames") //"`safeInputsDataPipeline.extractedData.${filename}" 
+    
+      publish(newPayload, filenameForJetstreamSubject) 
     }
   }
 })();

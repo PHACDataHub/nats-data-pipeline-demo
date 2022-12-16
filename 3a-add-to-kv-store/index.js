@@ -45,24 +45,25 @@ const sub = await js.subscribe(subj, opts);
 
 console.log('🚀 Connected to NATS jetstream server...');
 
+function replaceNonJetstreamCompatibleCharacters(filename){
+    // Jeststream subjects must only contain A-Z, a-z, 0-9, `-`, `_`, `/`, `=` or `.` and cannot start with `.`
+// This replaces these characters with '_' (for now)
+  const charactersReplaced = filename.replace(/[^a-z-\d_/=.]/gi, "_");
+  const spacesReplaced = charactersReplaced.replace(' ', '_')
+  return spacesReplaced
+}
+
 (async () => {
   for await (const message of sub) {
     message.ack(); // acknowledge receipt
     var payload  = jc.decode(message.data)
-    console.log(payload)
+    const kvKey = replaceNonJetstreamCompatibleCharacters(payload.filename)
     
-    // replace whitespace in filename (throws error if used in KV key) 
-      // - there is a more graceful way of doing this will come back and fix
-    payload.origFilename = payload.filename
-    payload.filename = payload.filename.replace(/ /g,"_")
-    payload.filename = payload.filename.replace(")","_")
-    payload.filename = payload.filename.replace("(","_")
-    
-    const addKeyValue = await kv.put(payload.filename, message.data); // (key => file name, value => payload)
+    const addKeyValue = await kv.put(kvKey, message.data); // (key => file name, value => payload)
 
     console.log("\n------------------------------------------------")
     console.log ("Recieved on ", message.subject)
-    console.log("Added to KV Store \n\nTimestamp: ,",Date.now(),"\n\nkey:", payload.filename, "\nvalue:", JSON.stringify(jc.decode(message.data)))
+    console.log("Added to KV Store \n\nTimestamp: ,",Date.now(),"\n\nkey:", kvKey, "\nvalue:", JSON.stringify(jc.decode(message.data)))
   }
 })();
 

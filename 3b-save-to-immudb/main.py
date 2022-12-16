@@ -50,7 +50,7 @@ async def main():
                 payload = msg.data.decode()
                 start = ':"'
                 end = '","me'
-            
+
                 filename = (payload.split(start))[1].split(end)[0]
                 data_to_insert = msg.data.decode()
 

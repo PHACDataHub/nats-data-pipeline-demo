@@ -79,16 +79,28 @@ function capitalize(object) {
 } 
 
 function printPayload(payload) { 
+  // Loop through content and stringify 
+ console.log(
+  `Timestamp: ${Date.now()}\n\n`, 
+ )
   for (var i = 0; i < payload.content.length; ++i) {
     console.log(JSON.stringify(payload.content[i]))
-    // payload.content[i].data = capitalize(payload.content[i].data)
   }
+}
+
+function replaceNonJetstreamCompatibleCharacters(filename){
+    // Jeststream subjects must only contain A-Z, a-z, 0-9, `-`, `_`, `/`, `=` or `.` and cannot start with `.`
+  // This replaces these characters with '_' (for now)
+  const charactersReplaced = filename.replace(/[^a-z-\d_/=.]/gi, "_");
+  const spacesReplaced = charactersReplaced.replace(' ', '_')
+  return spacesReplaced
 }
 
 (async () => {
   for await (const message of sub) {
     message.ack();
-    var payload  = jc.decode(message.data)
+    const payload  = jc.decode(message.data)
+    const filenameForJetstreamSubject = replaceNonJetstreamCompatibleCharacters(payload.filename)
 
 
     // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
@@ -98,19 +110,19 @@ function printPayload(payload) {
       payload.content[i].data = capitalize(payload.content[i].data)
   }
 
-    // console.log(
-    //   `\n\n---------------------------\n\n`,
-    //   `Recieved message on \"${subj}\"\n`,
-    //   `Publishing the following on \"${stream}.filename\"\n\n`, 
-    //   `Timestamp: ${Date.now()}\n\n`, 
-
-    //   `{\nfilename: ${payload.filename},\n 
-    //   metadata: ${payload.metadata},\n
-    //   content: `,printPayload(payload), `\n
-    // }`)
-    console.log(JSON.stringify(payload))
+    // log where sub and pub to and data
+    console.log(
+      `\n\n---------------------------\n\n`,
+      `Recieved message on \"${message.subject}\"\n`,
+      `Publishing the following on \"${stream}.${filenameForJetstreamSubject}\"\n\n`, 
+      `Timestamp: ${Date.now()}\n\n`, 
+      `filename: ${payload.filename}\n`
+      )
+    console.log (" metadata: ", JSON.stringify(payload.metadata), "\n")
+    console.log(" content: ",JSON.stringify(payload.content))
+    // printPayload(payload)
   
-    publish(payload, "filename") 
+    publish(payload, filenameForJetstreamSubject) 
   }
 })();
 
