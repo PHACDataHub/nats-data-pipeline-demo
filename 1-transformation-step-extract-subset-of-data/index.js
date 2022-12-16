@@ -49,14 +49,11 @@ const opts = consumerOpts();
 // Bind consumer to jetstream
 opts.bind("safeInputsRawSheetData", "safeInputsRawSheetDataConsumer"); //()
 
-// // ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
-// const subj = "safeInputsRawSheetData.>";
-// const sub = await js.subscribe(subj, opts);
-// console.log('🚀 Connected to NATS server...');
-
-// // Subscribe and listen to the 'sheetData' stream
-const sub = nc.subscribe("sheetData");
+// ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
+const subj = "safeInputsRawSheetData.>";
+const sub = await js.subscribe(subj, opts);
 console.log('🚀 Connected to NATS server...');
+
 
 function replaceNonJetstreamCompatibleCharacters(filename){
     // Jeststream subjects must only contain A-Z, a-z, 0-9, `-`, `_`, `/`, `=` or `.` and cannot start with `.`
