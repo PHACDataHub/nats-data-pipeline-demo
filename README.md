@@ -4,7 +4,7 @@ This project explores the use of [NATS](https://nats.io/) to pipeline and store 
 
 NATS is an open-source, cloud-native messaging system by [Synadia](https://synadia.com/). It simplifies the way services can communicate; easily spanning multi-cloud and multi-geo systems.  It allows for a variety of communication patterns that can be configured to meet the needs of many use cases.
 
-[Here's](https://www.youtube.com/watch?v=hjXIUPZ7ArM&t=1s) a video giving a NATS overview.
+[Here's](https://www.youtube.com/watch?v=hjXIUPZ7ArM&t=1s) a video giving a NATS overview. More information can be found in the [docs](https://docs.nats.io/), [repo](https://github.com/nats-io/) and [nats by example](https://natsbyexample.com/) site.
 
 *Please note this is a work in progress*
 
