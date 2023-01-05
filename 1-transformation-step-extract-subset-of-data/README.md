@@ -1,12 +1,12 @@
 # 1 Transformation Step - Extract Subset of Data
 
-This is an oversimplified example of the NATS messaging system.
+This is an oversimplified example of the NATS messaging system to show that we can do some transformation in a real-time data pipeline.
 
-This module extracts a subset of the NATS payload sent from safe inputs. 
+This service extracts a subset of the NATS payload sent from safe inputs. 
 
-At this point, the data extracted from the xlsx has been passed though the [GraphQL API](../api/) and published via NATS message.  extract-metadata-content picks up this JSON data and and pulls out the spreadsheet data and relevant metadata then publishes this data to another NATS subject.
+At this point, the data extracted from the xlsx from [safe inputs](https://safeinputs.alpha.canada.ca/) has been passed though the [GraphQL API]() and published via NATS message (along with additional information around the excel sheet settings ie hyperlinks intact etc...).  This service subscribes to that published NATS message and extracts out only the spreadsheet data and relevant metadata then publishes this data to another NATS subject.
 
-* NOTE - this will need a refactor - just getting the ideas out.
+While we are extracting a subset of information as an example, this could be data checking for pregnant males or field name validation before loading into a database; having options to transform the feildnames with predefined rules, or fire a alternate NATS messaage to activate an email alerting someone to check the dataset.
 
 ## Installing dependencies
 
@@ -18,14 +18,10 @@ npm install
 
 Note: the system expects a `.env` file in the root of the `json-to-db` floder containing the NATS_JWT value.
 ```
-$ npm start &
+$ npm start 
 ```
 
-## Running the tests
-
-```
-npm t
-```
+## Tests to come
 
 ## Code audits
 

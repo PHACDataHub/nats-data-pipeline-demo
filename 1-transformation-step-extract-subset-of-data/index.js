@@ -3,7 +3,7 @@
 // index.js (1-transformation-step-extract-subset-of-data)
 // 
 // This is an over-simplified transformation - it's just here to show that we can have a real-time data pipeline with 
-// some transformations.
+// some transformations. This service extracts only the details displayed on the ui when 'uploading' a spreadsheet to https://safeinputs.alpha.canada.ca/
 //
 // ################################################
 
@@ -13,7 +13,7 @@ import { connect, JSONCodec, createInbox, AckPolicy, consumerOpts, jwtAuthentica
 // ---- NATS variables
 // const jwt = process.env.NATS_JWT  // expected NATS_JWT value stored .env if running locally or as kubernetes secret env variable
 // const NATS_URL = "tls://connect.ngs.global:4222"  // Synadia's NATS server (https://app.ngs.global/)
-const NATS_URL = "demo.nats.io:4222"
+const NATS_URL = "demo.nats.io:4222"  // if want a more secure connection, use NGS or own nats cluster
 const jc = JSONCodec(); // for decoding NATS messages
 
 // Connect to NATS server 
@@ -22,9 +22,8 @@ const nc = await connect({
   // authenticator: jwtAuthenticator(jwt), // needed if connected to ngs
 });
 
-
-//-------------------------------------
 // ----- STREAM MANAGEMENT ----- 
+
 const jsm = await nc.jetstreamManager();
 const js = nc.jetstream();
 
@@ -32,14 +31,13 @@ const js = nc.jetstream();
 const pubStream = "safeInputsExtractedSubset";
 const pubStreamSubj = `safeInputsExtractedSubset.>`;
 // await jsm.streams.purge(stream); 
-
 await jsm.streams.add({ name: pubStream, subjects: [pubStreamSubj] });
 
 function publish(payload, filename) {
   js.publish(`${pubStream}.${filename}`, jc.encode(payload)) 
 }
 
-// Add consumer to jetstream (subscribe)
+// ----- Add durable consumer to jetstream (for subscriptions)
 try {
   const inbox = createInbox();
   await jsm.consumers.add("safeInputsRawSheetData", { // adds consumer to stream
@@ -62,27 +60,28 @@ console.log('🚀 Connected to NATS jetstream server...');
 function replaceNonJetstreamCompatibleCharacters(filename){
     // Jeststream subjects must only contain A-Z, a-z, 0-9, `-`, `_`, `/`, `=` or `.` and cannot start with `.`
 // This replaces these characters with '_' (for now)
-  const charactersReplaced = filename.replace(/[^a-z-\d_/=.]/gi, "_");
-  const spacesReplaced = charactersReplaced.replace(' ', '_')
-  return spacesReplaced
+// Need to use something like this as want to use filename as part of the subject
+  const charactersReplaced = filename.replace(/[^a-z-\d_/=.]/gi, "_").replace(' ', '_');
+  return charactersReplaced
 }
 
 (async () => {
   // listen for messages, then parse out just the metadata from the top portion of https://safeinputs.alpha.canada.ca/pagesix
   // as well as the extracted spreadsheet data.
   for await (const message of sub) {
-    
     var wholePayload  = jc.decode(message.data)
-    // message.ack()
+    message.ack()
     if (wholePayload.state == 'DONE'){
-      
+      // extract only information displayed on https://safeinputs.alpha.canada.ca/ when spreadsheet 'uploaded'
       const filename = wholePayload.filename
       const metadata = wholePayload.workbook.Props
       const content = wholePayload.sheets
       const filenameForJetstreamSubject = replaceNonJetstreamCompatibleCharacters(filename)
 
+      // Display details
       console.log(
-        '\n \n ------------------------------------------------------------- \nRecieved message on \"sheetData.>\"',
+        '\n \n ------------------------------------------------------------- \n',
+        'Recieved message on \"sheetData.>\"',
         `\nPublishing the following on \"${pubStream}.${filenameForJetstreamSubject}\"\n\n`, 
         `Timestamp: ${Date.now()}\n\n`, 
         filename,
@@ -91,13 +90,13 @@ function replaceNonJetstreamCompatibleCharacters(filename){
         '\n ', 
         JSON.stringify(content),
       )
-
+      
+      // Publish new payload
       var newPayload = {
         "filename": filename, 
         "metadata": metadata,
         "content": content
       } 
-    
       publish(newPayload, filenameForJetstreamSubject) 
     }
   }
