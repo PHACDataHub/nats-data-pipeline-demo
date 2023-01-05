@@ -15,8 +15,7 @@ make install
 
 Run the immudb docker container 
 ```
-docker build -t myown/immudb:latest -f Dockerfile .
-docker build -t myown/immuadmin:latest -f Dockerfile.immuadmin .
+docker run -ti -p 3322:3322 codenotary/immudb:latest
 ```
 ```
 $ python main.py

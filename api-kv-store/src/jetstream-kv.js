@@ -29,18 +29,15 @@ await jsm.streams.add({ name: stream, subjects: [subj] });
 
 // ----- Bind stream to durable consumer
 const opts = consumerOpts();
-// // opts.durable("safeInputsDataPipeline-kv-writer-consumer");
-// opts.durable("step3Consumer")
-// opts.manualAck();
-// opts.ackExplicit();
-// opts.deliverTo(createInbox());
 
-const inbox = createInbox();
-await jsm.consumers.add("safeInputsUppercased", { // stream
-  durable_name: "safeInputsUppercasedKVConsumer",
-  ack_policy: AckPolicy.Explicit,
-  deliver_subject: inbox,
-});
+try{
+  const inbox = createInbox();
+  await jsm.consumers.add("safeInputsUppercased", { // stream
+    durable_name: "safeInputsUppercasedKVConsumer",
+    ack_policy: AckPolicy.Explicit,
+    deliver_subject: inbox,
+  });
+}catch(e){}
 
 // Bind consumer to stream
 opts.bind("safeInputsUppercased", "safeInputsUppercasedKVConsumer");

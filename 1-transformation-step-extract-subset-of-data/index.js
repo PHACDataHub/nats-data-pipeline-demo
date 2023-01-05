@@ -22,28 +22,32 @@ const nc = await connect({
   // authenticator: jwtAuthenticator(jwt), // needed if connected to ngs
 });
 
-// ---- Setup Jetstream
+
+//-------------------------------------
+// ----- STREAM MANAGEMENT ----- 
 const jsm = await nc.jetstreamManager();
 const js = nc.jetstream();
 
-// Add a stream to publish on 
-const stream = "safeInputsExtractedSubset";
-const streamSubj = `safeInputsExtractedSubset.>`;
-await jsm.streams.add({ name: stream, subjects: [streamSubj] });
+// ----- Add a stream to publish on
+const pubStream = "safeInputsExtractedSubset";
+const pubStreamSubj = `safeInputsExtractedSubset.>`;
 // await jsm.streams.purge(stream); 
 
+await jsm.streams.add({ name: pubStream, subjects: [pubStreamSubj] });
 
 function publish(payload, filename) {
-    js.publish(`${stream}.${filename}`, jc.encode(payload)) 
-  }
+  js.publish(`${pubStream}.${filename}`, jc.encode(payload)) 
+}
 
-// Add consumer to jetstream 
-const inbox = createInbox();
-await jsm.consumers.add("safeInputsRawSheetData", { // adds consumer to stream
-  durable_name: "safeInputsRawSheetDataConsumer",
-  ack_policy: AckPolicy.Explicit,
-  deliver_subject: inbox,
-});
+// Add consumer to jetstream (subscribe)
+try {
+  const inbox = createInbox();
+  await jsm.consumers.add("safeInputsRawSheetData", { // adds consumer to stream
+    durable_name: "safeInputsRawSheetDataConsumer",
+    ack_policy: AckPolicy.Explicit,
+    deliver_subject: inbox,
+  });
+} catch (e){}
 const opts = consumerOpts();
 
 // Bind consumer to jetstream
@@ -52,7 +56,7 @@ opts.bind("safeInputsRawSheetData", "safeInputsRawSheetDataConsumer"); //()
 // ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
 const subj = "safeInputsRawSheetData.>";
 const sub = await js.subscribe(subj, opts);
-console.log('🚀 Connected to NATS server...');
+console.log('🚀 Connected to NATS jetstream server...');
 
 
 function replaceNonJetstreamCompatibleCharacters(filename){
@@ -79,7 +83,7 @@ function replaceNonJetstreamCompatibleCharacters(filename){
 
       console.log(
         '\n \n ------------------------------------------------------------- \nRecieved message on \"sheetData.>\"',
-        `\nPublishing the following on \"${stream}.${filenameForJetstreamSubject}\"\n\n`, 
+        `\nPublishing the following on \"${pubStream}.${filenameForJetstreamSubject}\"\n\n`, 
         `Timestamp: ${Date.now()}\n\n`, 
         filename,
         '\n',

@@ -25,12 +25,14 @@ const jsm = await nc.jetstreamManager();
 const js = nc.jetstream();
 
 // ----- Add a consumer for the stream published from 2-transformation-step-uppercase.index.js
-const inbox = createInbox();
-await jsm.consumers.add("safeInputsUppercased", { // stream
-  durable_name: "safeInputsUppercasedKVConsumer",
-  ack_policy: AckPolicy.Explicit,
-  deliver_subject: inbox,
-});
+try{
+  const inbox = createInbox();
+  await jsm.consumers.add("safeInputsUppercased", { // stream
+    durable_name: "safeInputsUppercasedKVConsumer",
+    ack_policy: AckPolicy.Explicit,
+    deliver_subject: inbox,
+  });
+}catch(e) {}
 
 const opts = consumerOpts();
 opts.bind("safeInputsUppercased", "safeInputsUppercasedKVConsumer");

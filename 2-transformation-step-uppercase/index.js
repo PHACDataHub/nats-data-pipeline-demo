@@ -37,12 +37,15 @@ function publish(payload, filename) {
 
 // ----- Create a durable consumer (with memeory of what it has previously consumed)
 // // (Note -consumers can consume messages from more than one stream)
-const inbox = createInbox();
-await jsm.consumers.add("safeInputsExtractedSubset", { // adds consumer to stream
-  durable_name: "safeInputsExtractedSubsetConsumer",
-  ack_policy: AckPolicy.Explicit,
-  deliver_subject: inbox,
-});
+try {
+  const inbox = createInbox();
+  await jsm.consumers.add("safeInputsExtractedSubset", { // adds consumer to stream
+    durable_name: "safeInputsExtractedSubsetConsumer",
+    ack_policy: AckPolicy.Explicit,
+    deliver_subject: inbox,
+  });
+} catch (e){}
+
 const opts = consumerOpts();
 
 // Bind consumer to jetstream
