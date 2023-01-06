@@ -152,3 +152,28 @@ await (async () => {
 // watch.stop(); // stop the watch operation above
 // await nc.drain(); // drain the nats connection
 // await kv.destroy(); // danger: destroys all values in the KV!
+
+//  --- Jetstream manager:
+//  // ---- Purge messages from stream  
+// await jsm.streams.purge("extractedSheetData");
+// await jsm.streams.purge("extractedSheetData", { filter: "extractedSheetData.>" });
+
+// // ---- display stream info 
+// console.log("stream info \n");
+// const si = await jsm.streams.info("safeInputsDataPipeline5");  
+// console.log(si) 
+
+// // ---- List all (jet)stream consumers for a stream
+// const stream = "safeInputsDataPipeline5"
+// const consumers = await jsm.consumers.list(stream).next();
+// consumers.forEach((ci) => {
+//     console.log(ci);
+// });
+
+// // retrieve a consumer's configuration
+// const ci = await jsm.consumers.info("safeInputsDataPipelineTest", "step3aConsumer");
+// console.log(ci);
+
+// // ---- Delete Consumer 
+// // delete a particular consumer
+// await jsm.consumers.delete(stream, "testDurableConsumer");
