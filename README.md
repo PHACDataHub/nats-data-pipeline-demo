@@ -22,7 +22,7 @@ The current flow is initiated with the
 * 3a-add-to-kv-store (puts message into the key value store, in this case using it as a filestore) 
 * 3b-save-to-immudb (a versioning db).  
 
-A [GraphQL API](api-kv-store)has been built to add or retrieve data from the NATS KV Store defined in 3a-add-to-kv-store. 
+api-kv-store is a GraphQL API built as an alternative way to add or retrieve data from the NATS KV Store defined in 3a-add-to-kv-store. 
 
 ## Try it out!
 Open up and start each service locally in your command lines of choice and watch the data flow when you "upload" a file to safe inputs. 
