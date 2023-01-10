@@ -8,7 +8,7 @@
 
 // TODO - maybe try https://github.com/hmenyus/node-calls-python for numpy transformations?
 import 'dotenv/config'
-import {StringCodec, connect,  JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
+import {connect,  JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
 import { replaceNonJetstreamCompatibleCharacters, capitalize} from './src/helper-functions.js'
 
 const jc = JSONCodec(); 
@@ -46,10 +46,8 @@ try { // Inital consumer set up (only used on set up otherwise gives 'consumer i
     ack_policy: AckPolicy.Explicit,
     deliver_subject: inbox,
   });
-  
-  opts.bind(stream, "safeInputsExtractedSubsetConsumer"); // Bind consumer to jetstream
 } catch (e){}
-
+opts.bind(stream, "safeInputsExtractedSubsetConsumer"); // Bind consumer to jetstream
 
 // ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
 const sub = await js.subscribe(`${stream}.>`, opts);

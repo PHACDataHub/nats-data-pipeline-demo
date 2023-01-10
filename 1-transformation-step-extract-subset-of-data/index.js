@@ -48,9 +48,12 @@ try { // Inital consumer set up (only used on set up otherwise gives 'consumer i
     deliver_subject: inbox,
   });
   opts.bind(stream, "safeInputsRawSheetDataConsumer"); // Bind consumer to jetstream
-} catch (e){
-  console.log(e) //NatsError: consumer name already in use //TODO: Handle this 
+} catch (err){
+  // if (err == 'NatsError: consumer name already in use'){
+  //   console.log('')
+  // }
 }
+opts.bind(stream, "safeInputsRawSheetDataConsumer"); // Bind consumer to jetstream
 
 // ----- Subscribe to message stream (these are currently being published from safe inputs )
 const sub = await js.subscribe(`${stream}.>`, opts);

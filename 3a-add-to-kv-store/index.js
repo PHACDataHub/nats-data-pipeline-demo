@@ -39,8 +39,8 @@ try{
     ack_policy: AckPolicy.Explicit,
     deliver_subject: inbox,
   });
-  opts.bind(stream, "safeInputsUppercasedKVConsumer");
 }catch(e) {}
+opts.bind(stream, "safeInputsUppercasedKVConsumer");
 
 
 // ----- Create KV Store BUCKET or bind to jetstream if it already exists:
