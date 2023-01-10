@@ -55,7 +55,7 @@ opts.manualAck();
 opts.ackExplicit();
 opts.deliverTo(createInbox());
 
-opts.bind("safeInputsDataPipeline7", "safeInputsDataPipeline-kv-writer-consumer");
+opts.bind('safeInputsUppercased', "safeInputsDataPipeline-kv-writer-consumer");
 console.log("Durable consumer bound to stream ...")
 
 
@@ -64,7 +64,8 @@ const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //
 console.log("KV Store bound to stream ...\n")
 
 // ----- RETRIEVE DATA ---------
-const filename = "test.xlsx";
+// const filename = "test.xlsx";
+const filename = 'Book1.xlsx'
 
 // ----- See if Key exists in KV Store (this is from the docs:
 const buf = [];

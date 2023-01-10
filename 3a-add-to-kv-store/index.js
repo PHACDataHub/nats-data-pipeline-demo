@@ -25,32 +25,23 @@ const nc = await connect({
 //   authenticator: jwtAuthenticator(jwt), // Needed if using NGS server
 });
 
-// ----- STREAM MANAGEMENT ---
-const jsm = await nc.jetstreamManager();
+// ----- Jetstream client
 const js = nc.jetstream();
 
 // ----- Add a durable consumer for the jetstream published from 2-transformation-step-uppercase.index.js
 const opts = consumerOpts();
-const stream = 'safeInputsUppercased'
-try{
-  const inbox = createInbox();
-  await jsm.consumers.add(stream, { // stream
-    durable_name: "safeInputsUppercasedKVConsumer",
-    ack_policy: AckPolicy.Explicit,
-    deliver_subject: inbox,
-  });
-}catch(e) {}
-opts.bind(stream, "safeInputsUppercasedKVConsumer");
-
+opts.durable("safeInputsUppercasedKVConsumer"); 
+opts.manualAck();
+opts.ackExplicit();
+opts.deliverTo(createInbox());
 
 // ----- Create KV Store BUCKET or bind to jetstream if it already exists:
 const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //- note bucket can store from multiple streams 
 
 // ----- Subscribe to message stream (these are currently being published from  2-transfomation-step-uppercase.index.js )
+const stream = 'safeInputsUppercased'
 const sub = await js.subscribe(`${stream}.>`, opts);
-
 console.log('🚀 Connected to NATS jetstream server...');
-
 
 (async () => {
   for await (const message of sub) {

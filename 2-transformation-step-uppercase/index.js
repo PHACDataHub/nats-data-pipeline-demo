@@ -22,14 +22,14 @@ const nc = await connect({
 //   authenticator: jwtAuthenticator(jwt), // Needed if using NGS server
 });
 
-
-// ----- Stream Managmenet ----- 
-const jsm = await nc.jetstreamManager();
-const js = nc.jetstream();
-
-// ----- Add a stream to publish on
+// ----- Add stream to publish on ----- 
 const pubStream = "safeInputsUppercased"
+
+const jsm = await nc.jetstreamManager();
 await jsm.streams.add({ name: pubStream, subjects: [`${pubStream}.>`] });
+
+// ----- Add jetstream client
+const js = nc.jetstream();
 
 function publish(payload, filename) {
   js.publish(`${pubStream}.${filename}`, jc.encode(payload)) 
@@ -38,20 +38,14 @@ function publish(payload, filename) {
 // ----- Create a durable consumer (with memeory of what it has previously consumed)
 // // (Note -consumers can consume messages from more than one stream)
 const opts = consumerOpts();
-const stream = "safeInputsExtractedSubset"
-try { // Inital consumer set up (only used on set up otherwise gives 'consumer in use' error)
-  const inbox = createInbox();
-  await jsm.consumers.add(stream, { // adds consumer to stream
-    durable_name: "safeInputsExtractedSubsetConsumer",
-    ack_policy: AckPolicy.Explicit,
-    deliver_subject: inbox,
-  });
-} catch (e){}
-opts.bind(stream, "safeInputsExtractedSubsetConsumer"); // Bind consumer to jetstream
+opts.durable("safeInputsExtractedSubsetConsumer"); 
+opts.manualAck();
+opts.ackExplicit();
+opts.deliverTo(createInbox());
 
 // ----- Subscribe to message stream (these are currently being published from 1-transfromation-step-extract-subset-of-data.index.js )
+const stream = "safeInputsExtractedSubset"
 const sub = await js.subscribe(`${stream}.>`, opts);
-
 console.log('🚀 Connected to NATS jetstream server...');
 
 (async () => {
@@ -60,6 +54,11 @@ console.log('🚀 Connected to NATS jetstream server...');
     const payload  = jc.decode(message.data)
     const filenameForJetstreamSubject = replaceNonJetstreamCompatibleCharacters(payload.filename)
 
+    // read headers if available (from https://github.com/nats-io/nats.deno)
+    if (message.headers) {
+      for (const [key, value] of message.headers) {
+        console.log(`${key}=${value}`);
+      }
     // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just uppercasing to show something.)
 
     // go through each sheet and capitalize the data part
@@ -80,6 +79,7 @@ console.log('🚀 Connected to NATS jetstream server...');
   
     publish(payload, filenameForJetstreamSubject) 
   }
+}
 })();
 
 nc.closed();
