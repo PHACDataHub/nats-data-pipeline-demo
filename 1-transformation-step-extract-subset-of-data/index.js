@@ -9,7 +9,7 @@
 // ################################################
 
 import 'dotenv/config'
-import { connect, JSONCodec, createInbox, AckPolicy, consumerOpts, jwtAuthenticator } from 'nats';
+import { connect, JSONCodec, createInbox, AckPolicy, consumerOpts, headers, nuid, jwtAuthenticator } from 'nats';
 import { replaceNonJetstreamCompatibleCharacters } from './src/helper-functions.js'
 
 const jc = JSONCodec(); // for byte decoding/ encoding NATS messages
@@ -23,37 +23,30 @@ const nc = await connect({
   // authenticator: jwtAuthenticator(jwt), // needed if connected to ngs
 });
 
-// ----- Stream Management ----- 
-const jsm = await nc.jetstreamManager();
-const js = nc.jetstream();
-
-// ----- Add a jetstream to publish on
+// ----- Add stream to publish on ----- 
 const pubStream = "safeInputsExtractedSubset";
+
+const jsm = await nc.jetstreamManager();
 await jsm.streams.add({ name: pubStream, subjects: [`${pubStream}.>`] }); 
 
-function publish(payload, filename) {
+// ---- Add jetstream client
+const js = nc.jetstream();
+
+function publish(payload, filename, h) {
     // Publishes byte encoded payload 
-    js.publish(`${pubStream}.${filename}`, jc.encode(payload)) 
+    js.publish(`${pubStream}.${filename}`, jc.encode(payload), { headers: h }) 
   }
 
-// ----- Create a durable consumer(for subscriptions - with memeory of what it has previously consumed)
+// ----- Create a durable consumer(for subscriptions - with memory of what it has previously consumed) //(https://github.com/nats-io/nats.deno/blob/main/jetstream.md)
 const opts = consumerOpts();
-const stream = "safeInputsRawSheetData"
+opts.durable("safeInputsRawSheetDataConsumer"); 
+opts.manualAck();
+opts.ackExplicit();
+opts.deliverTo(createInbox());
 
-try { // Inital consumer set up (only used on set up otherwise gives 'consumer in use' error)
-  const inbox = createInbox();  // to enable messages to be stored separately on NATS server for various consumers 
-  await jsm.consumers.add(stream, { 
-    durable_name: "safeInputsRawSheetDataConsumer",
-    ack_policy: AckPolicy.Explicit,
-    deliver_subject: inbox,
-  });
-  opts.bind(stream, "safeInputsRawSheetDataConsumer"); // Bind consumer to jetstream
-} catch (e){
-  console.log(e) //NatsError: consumer name already in use //TODO: Handle this 
-}
-
-// ----- Subscribe to message stream (these are currently being published from safe inputs )
-const sub = await js.subscribe(`${stream}.>`, opts);
+// ----- Subscribe to message stream 
+const stream = "safeInputsRawSheetData" //currently being published from safe inputs
+const sub = await js.subscribe(stream, opts);
 console.log('🚀 Connected to NATS jetstream server...');
 
 (async () => {
@@ -64,14 +57,23 @@ console.log('🚀 Connected to NATS jetstream server...');
     var payload  = jc.decode(message.data) // message was byte encoded
     if (payload.state == 'DONE'){
       const filename = payload.filename 
-      const metadata = payload.workbook.Props
+      const metadata = {
+        'Worksheets': payload.workbook.Props.Worksheets,
+        'SheetNames': payload.workbook.Props.SheetNames
+      }
       const content = payload.sheets
       const filenameForJetstreamSubject = replaceNonJetstreamCompatibleCharacters(filename)
 
+      // Add headers (don't need - just trying them out - ref: https://github.com/nats-io/nats.deno)
+      const h = headers();
+      h.append("id", nuid.next());
+      h.append("unix_time", Date.now().toString());
+
       // Display sub and pub subjects, timestamp and data after transformation
       console.log(
-        '\n \n ------------------------------------------------------------- \n',
-        'Recieved message on \"sheetData.>\"',
+        '\n \n ------------------------------------------------------------- ',
+        // `headers:`, h,
+        `\nRecieved message on ${stream}.>`,
         `\nPublishing the following on \"${pubStream}.${filenameForJetstreamSubject}\"\n\n`, 
         `Timestamp: ${Date.now()}\n\n`, 
         filename,
@@ -82,6 +84,7 @@ console.log('🚀 Connected to NATS jetstream server...');
       )
       
        // TODO - DO ACTUAL PROCESSING STUFF HERE (here we are just selecting to show something.)
+      
 
       // Publish new payload
       var newPayload = {
@@ -89,7 +92,7 @@ console.log('🚀 Connected to NATS jetstream server...');
         "metadata": metadata,
         "content": content
       } 
-      publish(newPayload, filenameForJetstreamSubject) 
+      publish(newPayload, filenameForJetstreamSubject, h) 
     }
   }
 })();
