@@ -15,7 +15,7 @@
 import {StringCodec, connect, nuid, JSONCodec, headers, consumerOpts, createInbox, AckPolicy, nanos } from 'nats';
 // TODO bring in headers
 
-// NATS variables
+// ----- nats connection
 // const jwt = process.env.NATS_JWT  // expected NATS_JWT value stored .env if running locally or as kubernetes secret env variable
 // const NATS_URL = "tls://connect.ngs.global:4222"  // Synadia's NATS server (https://app.ngs.global/)
 const NATS_URL = "demo.nats.io:4222"
@@ -25,10 +25,12 @@ const nc = await connect({
 });
 const sc = StringCodec();
 const jc = JSONCodec(); 
+
+// ----- jetstream client
 const js = nc.jetstream();
 
 // Create jetstream new stream
-const jsm = await nc.jetstreamManager();
+// const jsm = await nc.jetstreamManager();
 // const cfg = {
 //   name: "safeInputsDataPipeline",
 //   subjects: ["safeInputsDataPipeline.>"],
@@ -48,24 +50,24 @@ const jsm = await nc.jetstreamManager();
 //   deliver_subject: inbox,
 // });
 
-// Bind stream to durable consumer
-const opts = consumerOpts();
-opts.durable("safeInputsDataPipeline-kv-writer-consumer");
-opts.manualAck();
-opts.ackExplicit();
-opts.deliverTo(createInbox());
+// // Bind stream to durable consumer
+// const opts = consumerOpts();
+// opts.durable("safeInputsDataPipeline-kv-reader-consumer");
+// opts.manualAck();
+// opts.ackExplicit();
+// opts.deliverTo(createInbox());
 
-opts.bind('safeInputsUppercased', "safeInputsDataPipeline-kv-writer-consumer");
-console.log("Durable consumer bound to stream ...")
+// opts.bind('safeInputsUppercased', "safeInputsDataPipeline-kv-reader-consumer");
+// console.log("Durable consumer bound to stream ...")
 
 
 // create the named KV or bind to it if it exists:
-const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //This can give insight into more than one stream! Note default history is 1 (no history)
+const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10, max_msgs_per_subject: 64 }); //This can give insight into more than one stream! Note default history is 1 (no history)
 console.log("KV Store bound to stream ...\n")
 
 // ----- RETRIEVE DATA ---------
 // const filename = "test.xlsx";
-const filename = 'Book1.xlsx'
+const filename = 'test_data.xlsx'
 
 // ----- See if Key exists in KV Store (this is from the docs:
 const buf = [];
@@ -100,7 +102,8 @@ const watch = await kv.watch();
 })().then();
 
 // ----- View History - Need to fix so can see further back 
-let h = await kv.history({ key: filename, headers_only: false,});
+// let h = await kv.history({ key: filename, headers_only: false,});
+let h = await kv.history({ key: "testing123"});
 await (async () => {
   for await (const e of h) {
     // do something with the historical value here - e.operation is "PUT", "DEL", or "PURGE"
@@ -109,6 +112,19 @@ await (async () => {
     );
   }
 })();
+
+// const h = await kv.history({ key: "testing123" });
+// await (async () => {
+//   for await (const e of h) {
+//     // do something with the historical value
+//     // you can test e.operation for "PUT", "DEL", or "PURGE"
+//     // to know if the entry is a marker for a value set
+//     // or for a deletion or purge.
+//     console.log(
+//       `history: ${e.key}: ${e.operation} ${e.value ? sc.decode(e.value) : ""}`,
+//     );
+//   }
+// })();
 
 
 // ----- NOTES from DOCS on KV - this is what is stored:
