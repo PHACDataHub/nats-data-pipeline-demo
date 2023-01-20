@@ -17,5 +17,5 @@ const nc = await connect({
 const js = nc.jetstream();
 
 // ----- create the named KV or bind to it if it exists:
-export const kv = await js.views.kv("extractedSheetData-kv-store", { history: 10 }); //This can give insight into more than one stream! Note default history is 1 (no history)
+export const kv = await js.views.kv("test-kv-store", { history: 10 }); //This can give insight into more than one stream! Note default history is 1 (no history)
 console.log("KV Store bound to stream ...\n")

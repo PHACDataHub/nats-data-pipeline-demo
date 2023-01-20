@@ -36,14 +36,14 @@ opts.ackExplicit();
 opts.deliverTo(createInbox());
 
 // ----- Create KV Store BUCKET or bind to jetstream if it already exists:
-const kv = await js.views.kv("extractedSheetData-kv-store", { 
+const kv = await js.views.kv("test-kv-store", { 
   history: 10,
   // max_msgs_per_subject: 64, 
 }); //- note bucket can store from multiple streams 
 
 // ----- Subscribe to message stream (these are currently being published from  2-transfomation-step-uppercase.index.js )
 const stream = 'safeInputsUppercased'
-const sub = await js.subscribe(`${stream}.>`, opts);
+const sub = await js.subscribe(`${stream}.>`, opts); // auto binds stream to consumer
 console.log('🚀 Connected to NATS jetstream server...');
 
 (async () => {

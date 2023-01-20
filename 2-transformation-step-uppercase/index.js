@@ -22,14 +22,14 @@ const nc = await connect({
 //   authenticator: jwtAuthenticator(jwt), // Needed if using NGS server
 });
 
+// ----- Add jetstream client
+const js = nc.jetstream();
+
 // ----- Add stream to publish on ----- 
 const pubStream = "safeInputsUppercased"
 
-const jsm = await nc.jetstreamManager();
+const jsm = await nc.jetstreamManager(); // allows for CRUD operations
 await jsm.streams.add({ name: pubStream, subjects: [`${pubStream}.>`] });
-
-// ----- Add jetstream client
-const js = nc.jetstream();
 
 function publish(payload, filename) {
   js.publish(`${pubStream}.${filename}`, jc.encode(payload)) 

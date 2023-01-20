@@ -1,8 +1,6 @@
 import asyncio
 import contextlib
 import nats
-import json
-import ast
 import time
 from nats.errors import TimeoutError
 from immudb import ImmudbClient
