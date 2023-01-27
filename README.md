@@ -12,21 +12,21 @@ Here's a [video](https://www.youtube.com/watch?v=hjXIUPZ7ArM&t=1s) providing an 
 
 There are two types of NATS messaging - core NATS (at-most-once delivery or send-and-forget) and [jetstream](https://www.youtube.com/watch?v=EJJ2SG-cKyM) (at-least-once message delivery).  Here we're using NATS jetstream, which stores messages on the NATS server (we can set the retention policy around this), allowing for the message consumers to have insight into the message stream history, and to know which messages they have consumed; ensuring that messages are delivered in order, even with a lost connection.
 
-This pipeline is event driven with push consumers, with 2 small transformations culminating in storage in a database and datastore. 
+This pipeline is event-driven with push consumers, and 2 small transformations culminating in storage in a database and datastore. 
 
 *Please note this is a work in progress*
 
-The current flow is initiated with the 
-* "upload" of a spreadsheet to https://safeinputs.alpha.canada.ca (the [safe inputs project](https://github.com/PHACDataHub/safe-inputs)) 
-  * -> *nats jetstream message on subject "safeInputsRawSheetData"* ->  
-* 1-transformation-step-extract-subset-of-data (where the message is parsed - but really other work would be done here too - this is an simplified example) 
-  * -> *nats jetstream message on subject "safeInputsExtractedSubset.{filename}"* -> 
-* 2-transformation-step-uppercase (where the data is uppercased)  
-  * -> *nats jetstream message on subject "safeInputsUppercased.{filename}"* ->
-* 3a-add-to-kv-store (puts message into the NATS key value store, in this case using it as a filestore/ database) 
-* 3b-save-to-immudb (a versioning db).  
+The current flow is initiated with the "upload" of a spreadsheet to https://safeinputs.alpha.canada.ca (the [safe inputs project](https://github.com/PHACDataHub/safe-inputs)) 
+```mermaid
+flowchart LR
+    Safe-Inputs--safeInputsRawSheetData-->id3((Nats Server))--safeInputsRawSheetData-->1-transformation-step-extract-subset-of-data--safeInputsExtractedSubset.filename-->id3((Nats Server))--safeInputsExtractedSubset.>-->2-transformation-step-uppercase--safeInputsUppercased.filename-->id3((Nats Server))--safeInputsUppercased.>-->id1[(3a-add-to-kv-store)];id3((Nats Server))--safeInputsUppercased.>-->id2[(3b-save-to-immudb)]
+```
 
-api-kv-store is a GraphQL API built as an alternative way to add or retrieve data from the NATS KV Store defined in 3a-add-to-kv-store. (Although the KV Store is also a stream so messages can pulled back out with another consumer as well.)
+* 1-transformation-step-extract-subset-of-data demonstrates a small transformation (extracting out just the data, filename and small amount of metadata from the message - but really other work would be done here too - this is an simplified example). 
+* 2-transformation-step-uppercase is another small transformation - where the data is uppercased.
+* 3a-add-to-kv-store puts the message into the NATS KV (Key Value) store; in this case using it as a filestore/ database. 
+* 3b-save-to-immudb saves the data into a versioning db.  
+* api-kv-store is a GraphQL API built as an alternative way to add or retrieve data from the NATS KV Store defined in 3a-add-to-kv-store. (Although the KV Store is also a stream so messages can pulled back out with another consumer!)
 
 ## Try it out!
 Open up and start each service locally in your command lines of choice and watch the data flow when you "upload" a file to safe inputs. 
