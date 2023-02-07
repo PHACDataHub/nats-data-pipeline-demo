@@ -6,26 +6,17 @@ This service subscribes to the "safeInputsDataPipeline5.uppercased.>" NATS subje
 
 The console logs display the keys and values pulled from the database after they have been loaded.
 
-## Installing dependencies
-
+## Running
 ```
-make install
+$ docker-compose build
+$ docker-compose up
 ```
-(Note - if using ngs (this is not at this time) you will need a an authorized user's credentials file in NGS.creds if running locally)
-
-## Running it
-
-Run the immudb docker container 
+## When done
 ```
-docker run -ti -p 3322:3322 codenotary/immudb:latest
-```
-then,
-```
-$ python main.py
+$ docker-compose down
 ```
 
 ## Running the tests (to come)
-
 
 ## Code audits
 

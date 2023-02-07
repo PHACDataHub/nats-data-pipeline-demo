@@ -10,8 +10,11 @@ from immudb import ImmudbClient
 
 
 async def main():
-    # Immudb connection ((immutable database) - note have docker container up and running )
-    client = ImmudbClient("0.0.0.0:3322")
+    # try:
+        # Immudb connection ((immutable database) - note have docker container up and running )
+    client = ImmudbClient("database:3322") # database declared in docker-compose.yaml, otherwise:
+    # client = ImmudbClient("172.17.0.2:3322") # if using docker without docker-compose, or
+    # client = ImmudbClient("0.0.0.0:3322") # if running without docker
     client.login(username="immudb", password="immudb")
 
     # NATS connection

@@ -8,12 +8,24 @@ The transfomation in this case is uppercasing the spreadsheet data - again, just
 
 This service subcribes to the subject being published by [1-transformation-step-extract-subset-of-data](../1-transformation-step-extract-subset-of-data/) (safeInputsExtractedSubset.\<filename\>) and publishes to safeInputsUppercased.\<filename\>.
 
-## Installing dependencies
+# Running the Code
+## Run with Docker 
+```
+$ docker build -t uppercase .
+$ docker run --name uppercase uppercase
+```
+### Stop Container 
+```
+$ docker stop uppercase
+$ docker rm uppercase
+```
+## Run without Docker: 
+### Installing dependencies
 
 ```
 npm install
 ```
-## Running it
+### Running it
 Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS_JWT value stored in a `.env` file is required. (This is not the case at the moment - we're using the nats demo servers for now.)
 ```
 $ npm start 

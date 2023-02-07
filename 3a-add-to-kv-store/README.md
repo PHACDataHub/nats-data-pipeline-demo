@@ -31,13 +31,25 @@ Nats By Example:
 https://natsbyexample.com/  This is a great resource in general, but limited in number langauges they maintain for some features.
 
 # Running the Code
-
-## Installing dependencies
+## Run with Docker 
+```
+$ make run
+```
+### Stop and remove container 
+```
+$ make stop
+```
+## Without Docker
+### Installing dependencies
 
 ```bash
 $ npm install
 ```
-
+### Running it
+Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS_JWT value stored in a `.env` file is required. (This is not the case at the moment - we're using the nats demo servers for now.)
+```
+$ npm start 
+```
 ## Writing to the KV Store:
 Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS_JWT value stored in a `.env` file is required. (This is not the case at the moment - we're using the nats demo servers for now.)
 ```bash
