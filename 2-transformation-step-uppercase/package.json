@@ -7,7 +7,9 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "lint": "eslint src",
     "dbg": "node --experimental-vm-modules --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
-    "start": "node --experimental-vm-modules index.js"
+    "start": "node --experimental-vm-modules index.js",
+    "service": "docker build -t uppercase . && docker run --name uppercase uppercase",
+    "stop": "docker stop uppercase && docker rm uppercase"
   },
   "keywords": [],
   "author": "",

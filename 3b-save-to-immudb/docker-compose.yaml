@@ -1,0 +1,24 @@
+# reference https://towardsdatascience.com/docker-compose-for-absolute-beginners-how-does-it-work-and-how-to-use-it-examples-733ca24c5e6c
+
+version: "3.8"
+name: 3b-save-to-immudb
+services:
+  database:
+    container_name: database
+    hostname: database
+    image: codenotary/immudb:latest
+    ports:
+      - 3322:3322
+    restart: unless-stopped
+
+  3b-save-to-immudb:
+    build: 
+      # context: ./app
+      dockerfile: Dockerfile
+    # environment:
+    #   PYTHONBUFFERED: 1
+
+    depends_on:
+      -  database
+# volumes:
+#   driver: {}
