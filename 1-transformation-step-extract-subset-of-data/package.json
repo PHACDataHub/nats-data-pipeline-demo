@@ -8,7 +8,9 @@
     "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
     "lint": "eslint src",
     "dbg": "node --experimental-vm-modules --inspect-brk node_modules/.bin/jest --runInBand --no-cache",
-    "start": "node --experimental-vm-modules index.js"
+    "start": "node --experimental-vm-modules index.js",
+    "service": "docker build -t transform1 . && docker run --name transform1 transform1",
+    "stop": "docker stop transform1 && docker rm transform1"
   },
   "keywords": [],
   "author": "",

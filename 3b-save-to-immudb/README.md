@@ -8,12 +8,12 @@ The console logs display the keys and values pulled from the database after they
 
 ## Running
 ```
-$ docker-compose build
-$ docker-compose up
+$ docker compose build
+$ docker compose up
 ```
 ## When done
 ```
-$ docker-compose down
+$ docker compose down
 ```
 
 ## Running the tests (to come)

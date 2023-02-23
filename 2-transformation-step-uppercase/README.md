@@ -11,13 +11,11 @@ This service subcribes to the subject being published by [1-transformation-step-
 # Running the Code
 ## Run with Docker 
 ```
-$ docker build -t uppercase .
-$ docker run --name uppercase uppercase
+$ npm run service
 ```
 ### Stop Container 
 ```
-$ docker stop uppercase
-$ docker rm uppercase
+$ npm stop
 ```
 ## Run without Docker: 
 ### Installing dependencies
@@ -25,7 +23,7 @@ $ docker rm uppercase
 ```
 npm install
 ```
-### Running it
+### Running it without Docker
 Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS_JWT value stored in a `.env` file is required. (This is not the case at the moment - we're using the nats demo servers for now.)
 ```
 $ npm start 

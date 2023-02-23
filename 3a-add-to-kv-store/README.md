@@ -33,11 +33,11 @@ https://natsbyexample.com/  This is a great resource in general, but limited in 
 # Running the Code
 ## Run with Docker 
 ```
-$ make run
+$ npm run service
 ```
-### Stop and remove container 
+### Stop Container 
 ```
-$ make stop
+$ npm stop
 ```
 ## Without Docker
 ### Installing dependencies
@@ -50,12 +50,6 @@ Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS
 ```
 $ npm start 
 ```
-## Writing to the KV Store:
-Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS_JWT value stored in a `.env` file is required. (This is not the case at the moment - we're using the nats demo servers for now.)
-```bash
-$ npm start
-```
-
 ## Reading from the KV Store:
 
 ```bash

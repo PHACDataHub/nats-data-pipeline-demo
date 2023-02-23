@@ -13,11 +13,12 @@ At transformation completion, another NATS message containing the updated payloa
 # Running the Code
 ## Run with Docker 
 ```
-$ make run
+$ npm run service
 ```
 ### Stop and remove container 
+(in another terminal)
 ```
-$ make stop
+$ npm stop
 ```
 ## Run without Docker: 
 ### Installing dependencies
@@ -25,12 +26,6 @@ $ make stop
 ```
 npm install
 ```
-### Installing dependencies
-
-```
-npm install
-```
-
 ### Running it
 Note: If connecting to [ngs](https://synadia.com/ngs), an authorized user's NATS_JWT value stored in a `.env` file is required. (This is not the case at the moment - we're using the nats demo servers for now.)
 ```
